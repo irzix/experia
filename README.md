@@ -1,3 +1,5 @@
+![Experia AI](banner.png)
+
 # Experia AI
 
 [![PyPI version](https://badge.fury.io/py/experia.svg)](https://badge.fury.io/py/experia)
