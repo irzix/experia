@@ -8,16 +8,18 @@ from experia.memory.store import SQLiteStore
 
 
 @pytest.fixture
-def store():
-    db_path = "test_experia.db"
+async def store():
+    db_path = "test_experia_store.db"
     store = SQLiteStore(db_path=db_path)
+    await store.initialize()
     yield store
     # Cleanup after test
     if os.path.exists(db_path):
         os.remove(db_path)
 
 
-def test_save_and_get_experience(store):
+@pytest.mark.asyncio
+async def test_save_and_get_experience(store):
     exp = ExperienceRecord(
         task="Test task",
         action="Test action",
@@ -25,16 +27,17 @@ def test_save_and_get_experience(store):
         context={"key": "value"},
     )
 
-    store.save_experience(exp)
+    await store.save_experience(exp)
 
-    retrieved = store.get_experience(exp.id)
+    retrieved = await store.get_experience(exp.id)
     assert retrieved is not None
     assert retrieved.id == exp.id
     assert retrieved.task == "Test task"
     assert retrieved.context == {"key": "value"}
 
 
-def test_save_and_search_memory(store):
+@pytest.mark.asyncio
+async def test_save_and_search_memory(store):
     mem1 = Memory(
         content="User likes python",
         type=MemoryType.PREFERENCE,
@@ -48,19 +51,19 @@ def test_save_and_search_memory(store):
         importance=0.5,
     )
 
-    store.save_memory(mem1)
-    store.save_memory(mem2)
+    await store.save_memory(mem1)
+    await store.save_memory(mem2)
 
     # Search all
-    results = store.search_memories()
+    results = await store.search_memories()
     assert len(results) == 2
 
     # Search by type
-    pref_results = store.search_memories(memory_type=MemoryType.PREFERENCE)
+    pref_results = await store.search_memories(memory_type=MemoryType.PREFERENCE)
     assert len(pref_results) == 1
     assert pref_results[0].id == mem1.id
 
     # Search by text
-    text_results = store.search_memories(query="logs")
+    text_results = await store.search_memories(query="logs")
     assert len(text_results) == 1
     assert text_results[0].content == "Always check logs on failure"
