@@ -20,6 +20,7 @@ class Learner:
         store: MemoryStore,
         evaluator: Evaluator,
         rule_generator: Optional[RuleGenerator] = None,
+        agent_role: str = "default",
     ):
         if not store or not evaluator:
             raise ConfigurationError("Learner requires both a store and an evaluator.")
@@ -27,8 +28,9 @@ class Learner:
         self.store = store
         self.evaluator = evaluator
         self.rule_generator = rule_generator
+        self.agent_role = agent_role
         self.context_builder = ContextBuilder()
-        logger.info("Experia Learner initialized successfully.")
+        logger.info(f"Experia Learner initialized successfully for role: {agent_role}.")
 
     async def record(
         self,
@@ -39,7 +41,13 @@ class Learner:
     ) -> ExperienceRecord:
         """Records an agent's action and its result asynchronously."""
         experience = ExperienceRecord(
-            task=task, action=action, result=result, context=context or {}
+            id=uuid.uuid4(),
+            task=task,
+            action=action,
+            result=result,
+            agent_role=self.agent_role,
+            context=context or {},
+            created_at=datetime.utcnow(),
         )
         await self.store.save_experience(experience)
         logger.debug(f"Recorded experience {experience.id} for task '{task}'")
@@ -51,14 +59,20 @@ class Learner:
         """Internal asynchronous method to evaluate an experience and store its lesson."""
         lesson = await self.evaluator.evaluate(experience)
         if lesson:
+            lesson.agent_role = self.agent_role
             await self.store.save_lesson(lesson)
 
             memory = Memory(
+                id=uuid.uuid4(),
                 content=lesson.content,
                 type=MemoryType.LESSON,
+                agent_role=self.agent_role,
                 confidence=lesson.confidence,
                 importance=0.7,
-                source=f"Experience:{experience.id}",
+                source=f"experience_{experience.id}",
+                metadata={"root_cause": lesson.root_cause}
+                if hasattr(lesson, "root_cause") and lesson.root_cause
+                else {},
             )
             await self.store.save_memory(memory)
             logger.info(
@@ -82,7 +96,9 @@ class Learner:
 
     async def retrieve_context(self, query: str = "", limit: int = 5) -> str:
         """Searches cognitive memory and builds a prompt string asynchronously."""
-        memories = await self.store.search_memories(query=query, limit=limit)
+        memories = await self.store.search_memories(
+            query=query, limit=limit, agent_role=self.agent_role
+        )
         logger.debug(f"Retrieved {len(memories)} memories for context.")
         return self.context_builder.format_for_prompt(memories)
 
@@ -90,7 +106,12 @@ class Learner:
         self, content: str, memory_type: MemoryType = MemoryType.FACT
     ) -> Memory:
         """Manually add a piece of knowledge to the memory store asynchronously."""
-        memory = Memory(content=content, type=memory_type, importance=0.9)
+        memory = Memory(
+            content=content,
+            type=memory_type,
+            importance=0.9,
+            agent_role=self.agent_role,
+        )
         await self.store.save_memory(memory)
         logger.debug(f"Manually remembered explicit knowledge: {memory.id}")
         return memory

@@ -71,6 +71,7 @@ from experia.experience.llm_evaluator import LLMEvaluator
 from experia.integrations.langgraph.nodes import ExperiaContextNode, ExperiaLearningNode
 from langgraph.graph import StateGraph, MessagesState
 
+
 async def main():
     store = SQLiteStore("my_agent.db")
     await store.initialize()
@@ -81,11 +82,11 @@ async def main():
 
     # 1. Add Experia Context Node (Injects learned knowledge before the agent acts)
     builder.add_node("inject_context", ExperiaContextNode(agent=agent))
-    
+
     # 2. Add your Agent and Tool nodes
     # builder.add_node("agent", ...)
     # builder.add_node("tools", ...)
-    
+
     # 3. Add Experia Learning Node (Extracts experiences after tools run)
     builder.add_node("learn", ExperiaLearningNode(agent=agent))
 
@@ -97,9 +98,10 @@ async def main():
     # builder.add_edge("learn", "agent")
 
     graph = builder.compile()
-    
+
     # Now run your graph! Experia will automatically learn from every cycle.
     # await graph.ainvoke({"messages": [...]})
+
 
 if __name__ == "__main__":
     asyncio.run(main())
@@ -122,9 +124,9 @@ async def main():
     await store.initialize()
 
     agent = Learner(
-        store=store, 
-        evaluator=LLMEvaluator(model="gpt-4o-mini"), 
-        rule_generator=RuleGenerator(store=store, model="gpt-4o-mini")
+        store=store,
+        evaluator=LLMEvaluator(model="gpt-4o-mini"),
+        rule_generator=RuleGenerator(store=store, model="gpt-4o-mini"),
     )
 
     # Record actions explicitly
@@ -136,6 +138,7 @@ async def main():
 
     # Developer-controlled Nightly Reflection
     await agent.reflect(model="gpt-4o-mini", batch_size=50)
+
 
 if __name__ == "__main__":
     asyncio.run(main())

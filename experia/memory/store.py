@@ -30,6 +30,7 @@ class SQLiteStore:
                         task TEXT NOT NULL,
                         action TEXT NOT NULL,
                         result TEXT NOT NULL,
+                        agent_role TEXT NOT NULL DEFAULT 'default',
                         context TEXT,
                         created_at TEXT NOT NULL
                     )
@@ -41,6 +42,7 @@ class SQLiteStore:
                         id TEXT PRIMARY KEY,
                         experience_id TEXT NOT NULL,
                         content TEXT NOT NULL,
+                        agent_role TEXT NOT NULL DEFAULT 'default',
                         root_cause TEXT,
                         confidence REAL NOT NULL,
                         created_at TEXT NOT NULL,
@@ -48,11 +50,22 @@ class SQLiteStore:
                     )
                 """)
 
-                # Check for existing table and add root_cause if missing (migration)
+                # Check for existing table and add root_cause/agent_role if missing (migration)
                 cursor = await conn.execute("PRAGMA table_info(lessons)")
                 columns = [row[1] for row in await cursor.fetchall()]
                 if "root_cause" not in columns:
                     await conn.execute("ALTER TABLE lessons ADD COLUMN root_cause TEXT")
+                if "agent_role" not in columns:
+                    await conn.execute(
+                        "ALTER TABLE lessons ADD COLUMN agent_role TEXT DEFAULT 'default'"
+                    )
+
+                cursor = await conn.execute("PRAGMA table_info(experiences)")
+                exp_columns = [row[1] for row in await cursor.fetchall()]
+                if "agent_role" not in exp_columns:
+                    await conn.execute(
+                        "ALTER TABLE experiences ADD COLUMN agent_role TEXT DEFAULT 'default'"
+                    )
 
                 # Memories Table
                 await conn.execute("""
@@ -60,6 +73,7 @@ class SQLiteStore:
                         id TEXT PRIMARY KEY,
                         content TEXT NOT NULL,
                         type TEXT NOT NULL,
+                        agent_role TEXT NOT NULL DEFAULT 'default',
                         confidence REAL NOT NULL,
                         importance REAL NOT NULL,
                         source TEXT,
@@ -69,6 +83,14 @@ class SQLiteStore:
                         expires_at TEXT
                     )
                 """)
+
+                cursor = await conn.execute("PRAGMA table_info(memories)")
+                mem_columns = [row[1] for row in await cursor.fetchall()]
+                if "agent_role" not in mem_columns:
+                    await conn.execute(
+                        "ALTER TABLE memories ADD COLUMN agent_role TEXT DEFAULT 'default'"
+                    )
+
                 await conn.commit()
         except Exception as e:
             raise StorageError(f"Failed to initialize SQLite database: {e}")
@@ -81,14 +103,15 @@ class SQLiteStore:
             async with aiosqlite.connect(self.db_path) as conn:
                 await conn.execute(
                     """
-                    INSERT INTO experiences (id, task, action, result, context, created_at)
-                    VALUES (?, ?, ?, ?, ?, ?)
+                    INSERT INTO experiences (id, task, action, result, agent_role, context, created_at)
+                    VALUES (?, ?, ?, ?, ?, ?, ?)
                     """,
                     (
                         str(experience.id),
                         experience.task,
                         experience.action,
                         experience.result,
+                        experience.agent_role,
                         json.dumps(experience.context) if experience.context else None,
                         experience.created_at.isoformat(),
                     ),
@@ -137,8 +160,9 @@ class SQLiteStore:
                             task=row[1],
                             action=row[2],
                             result=row[3],
-                            context=json.loads(row[4]) if row[4] else {},
-                            created_at=datetime.fromisoformat(row[5]),
+                            agent_role=row[4],
+                            context=json.loads(row[5]) if row[5] else {},
+                            created_at=datetime.fromisoformat(row[6]),
                         )
                     )
             return experiences
@@ -153,13 +177,14 @@ class SQLiteStore:
             async with aiosqlite.connect(self.db_path) as conn:
                 await conn.execute(
                     """
-                    INSERT INTO lessons (id, experience_id, content, root_cause, confidence, created_at)
-                    VALUES (?, ?, ?, ?, ?, ?)
+                    INSERT INTO lessons (id, experience_id, content, agent_role, root_cause, confidence, created_at)
+                    VALUES (?, ?, ?, ?, ?, ?, ?)
                     """,
                     (
                         str(lesson.id),
                         str(lesson.experience_id),
                         lesson.content,
+                        lesson.agent_role,
                         lesson.root_cause,
                         lesson.confidence,
                         lesson.created_at.isoformat(),
@@ -178,14 +203,15 @@ class SQLiteStore:
                 await conn.execute(
                     """
                     INSERT OR REPLACE INTO memories 
-                    (id, content, type, confidence, importance, source, metadata, 
+                    (id, content, type, agent_role, confidence, importance, source, metadata, 
                     created_at, updated_at, expires_at)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                     """,
                     (
                         str(memory.id),
                         memory.content,
                         memory.type.value,
+                        memory.agent_role,
                         memory.confidence,
                         memory.importance,
                         memory.source,
@@ -203,6 +229,7 @@ class SQLiteStore:
         self,
         query: str = "",
         memory_type: Optional[MemoryType] = None,
+        agent_role: Optional[str] = None,
         limit: int = 10,
     ) -> List[Memory]:
         """
@@ -222,6 +249,11 @@ class SQLiteStore:
                     sql += " AND type = ?"
                     params.append(memory_type.value)
 
+                if agent_role:
+                    # Allow either the specific role or the 'global' shared role (e.g. STRATEGY)
+                    sql += " AND (agent_role = ? OR type = ?)"
+                    params.extend([agent_role, MemoryType.STRATEGY.value])
+
                 sql += " ORDER BY importance DESC, confidence DESC LIMIT ?"
                 params.append(limit)
 
@@ -234,14 +266,15 @@ class SQLiteStore:
                             id=UUID(row[0]),
                             content=row[1],
                             type=MemoryType(row[2]),
-                            confidence=row[3],
-                            importance=row[4],
-                            source=row[5],
-                            metadata=json.loads(row[6]) if row[6] else {},
-                            created_at=datetime.fromisoformat(row[7]),
-                            updated_at=datetime.fromisoformat(row[8]),
-                            expires_at=datetime.fromisoformat(row[9])
-                            if row[9]
+                            agent_role=row[3],
+                            confidence=row[4],
+                            importance=row[5],
+                            source=row[6],
+                            metadata=json.loads(row[7]) if row[7] else {},
+                            created_at=datetime.fromisoformat(row[8]),
+                            updated_at=datetime.fromisoformat(row[9]),
+                            expires_at=datetime.fromisoformat(row[10])
+                            if row[10]
                             else None,
                         )
                     )

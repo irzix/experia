@@ -30,6 +30,10 @@ class ExperienceRecord(BaseModel):
         description="The raw outcome, error message, or output of the action.",
         json_schema_extra={"example": "Failed: port 80 is already bound."},
     )
+    agent_role: str = Field(
+        default="default",
+        description="The role of the agent that performed the action.",
+    )
     context: Optional[Dict[str, Any]] = Field(
         default_factory=dict,
         description="Optional state variables or memory context active during the action.",
@@ -57,6 +61,10 @@ class Lesson(BaseModel):
         json_schema_extra={
             "example": "Always verify port availability using lsof -i :80 before starting the web server."
         },
+    )
+    agent_role: str = Field(
+        default="default",
+        description="The role of the agent that performed the action.",
     )
     root_cause: Optional[str] = Field(
         default=None,

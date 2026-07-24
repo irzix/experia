@@ -31,6 +31,9 @@ class Memory(BaseModel):
         json_schema_extra={"example": "User prefers short, concise answers."},
     )
     type: MemoryType = Field(..., description="The category/type of this memory.")
+    agent_role: str = Field(
+        default="default", description="The role of the agent that created the memory."
+    )
     confidence: float = Field(
         default=0.8,
         ge=0.0,
