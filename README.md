@@ -58,6 +58,8 @@ pip install "experia[llm,langgraph]"
 
 *Note: You will need an `OPENAI_API_KEY` (or other litellm supported keys) exported in your environment.*
 
+For full documentation on classes, methods, and models, please see the [API Reference](API_REFERENCE.md).
+
 ### Native LangGraph Integration
 
 Experia provides native, stateful Nodes for **LangGraph**, the modern standard for Multi-Agent and Cyclical AI workflows.
