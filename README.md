@@ -6,11 +6,14 @@
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-The open-source experience learning layer for AI agents.
+### Memory layers help your agents *remember*. Experia helps them *learn*.
 
-Experia enables agents to learn from past actions, failures, and outcomes.
-It provides experience capture, lesson extraction, behavioral improvement,
-and long-term cognitive memory without replacing existing agent frameworks.
+The open-source **experience-learning layer** that makes AI agents measurably
+stop repeating their mistakes. Experia captures what an agent did, evaluates why
+it worked or failed, distills a reusable lesson, and reinforces the strategies
+that keep paying off — a cognitive plugin for the frameworks you already use
+(LangChain, LangGraph, and more). It doesn't replace your agent framework; it
+closes the feedback loop around it.
 
 ## Vision
 
@@ -44,6 +47,41 @@ flowchart TD
     end
     
     Ctx -- 9. Inject Shared Knowledge --> AgentA & AgentB & Supervisor
+```
+
+## Does it actually work?
+
+A deterministic, fully offline benchmark ([`benchmark/learning_benchmark.py`](benchmark/learning_benchmark.py))
+pits two identical agents against the same workday of ops tasks. The agent has
+**no built-in knowledge** — its only intelligence is the context Experia injects,
+so every difference is attributable to the cognitive layer.
+
+```text
+Experia learning benchmark  (6 tasks x 4 rounds = 24 episodes)
+==================================================================
+Metric                                  Baseline       Experia
+------------------------------------------------------------------
+Tasks completed successfully               0/24         18/24
+Overall success rate                          0%           75%
+Mistakes repeated (avoidable)                 18             0
+==================================================================
+
+Success rate per round (the learning curve)
+------------------------------------------------------------------
+  Round 1   baseline [....................]   0%   experia [....................]   0%
+  Round 2   baseline [....................]   0%   experia [####################] 100%
+  Round 3   baseline [....................]   0%   experia [####################] 100%
+  Round 4   baseline [....................]   0%   experia [####################] 100%
+------------------------------------------------------------------
+```
+
+The baseline agent makes the same avoidable mistake **18 times**. The Experia
+agent fails each task at most once, extracts the lesson, and never repeats it —
+reaching a 100% success rate from the second encounter on. No LLM or API key is
+required to reproduce this:
+
+```bash
+python benchmark/learning_benchmark.py
 ```
 
 ## Integrations
