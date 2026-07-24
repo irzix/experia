@@ -1,5 +1,9 @@
 # Experia AI
 
+[![PyPI version](https://badge.fury.io/py/experia.svg)](https://badge.fury.io/py/experia)
+[![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 The open-source experience learning layer for AI agents.
 
 Experia enables agents to learn from past actions, failures, and outcomes.
