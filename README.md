@@ -54,55 +54,60 @@ Experia acts as a cognitive plugin. It does not replace your agent frameworks (l
 Experia uses an **asynchronous** and **pluggable** architecture. To use the advanced cognitive features (Root Cause Analysis, Rules, and Reflection), install with the `llm` extra. You can also install specific integration extras like `langchain`, `langgraph`, or `openai`:
 
 ```bash
-pip install "experia[llm,langchain]"
+pip install "experia[llm,langgraph]"
 ```
 
 *Note: You will need an `OPENAI_API_KEY` (or other litellm supported keys) exported in your environment.*
 
-### LangChain Integration
+### Native LangGraph Integration
 
-Experia provides native integrations for LangChain, allowing you to inject cognitive learning into existing agents without changing their core logic.
+Experia provides native, stateful Nodes for **LangGraph**, the modern standard for Multi-Agent and Cyclical AI workflows.
 
 ```python
 import asyncio
 from experia.core.learner import Learner
 from experia.memory.store import SQLiteStore
 from experia.experience.llm_evaluator import LLMEvaluator
-from experia.integrations.langchain.callbacks import ExperiaCallbackHandler
-from experia.integrations.langchain.retrievers import ExperiaLearningRetriever
-from langchain.agents import initialize_agent, AgentType
-from langchain.llms import OpenAI
-from langchain.tools import Tool
+from experia.integrations.langgraph.nodes import ExperiaContextNode, ExperiaLearningNode
+from langgraph.graph import StateGraph, MessagesState
 
 async def main():
     store = SQLiteStore("my_agent.db")
     await store.initialize()
     agent = Learner(store=store, evaluator=LLMEvaluator(model="gpt-4o-mini"))
 
-    # 1. Native Experia Callback Handler
-    # Automatically listens to LangChain events, builds cohesive experiences, and records them.
-    experia_callback = ExperiaCallbackHandler(agent=agent)
-    
-    # 2. Native Learning Retriever
-    # Plugs into LCEL chains to automatically fetch past lessons and rules.
-    learning_retriever = ExperiaLearningRetriever(agent=agent)
+    # Define your standard LangGraph
+    builder = StateGraph(MessagesState)
 
-    # Initialize your standard LangChain agent
-    llm = OpenAI(temperature=0)
-    tools = [Tool(name="ExampleTool", func=lambda x: "Success", description="Example")]
+    # 1. Add Experia Context Node (Injects learned knowledge before the agent acts)
+    builder.add_node("inject_context", ExperiaContextNode(agent=agent))
     
-    lc_agent = initialize_agent(tools, llm, agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION)
+    # 2. Add your Agent and Tool nodes
+    # builder.add_node("agent", ...)
+    # builder.add_node("tools", ...)
     
-    # Run the agent with the Experia callback!
-    await lc_agent.arun("Deploy the application", callbacks=[experia_callback])
+    # 3. Add Experia Learning Node (Extracts experiences after tools run)
+    builder.add_node("learn", ExperiaLearningNode(agent=agent))
+
+    # Flow
+    builder.set_entry_point("inject_context")
+    # builder.add_edge("inject_context", "agent")
+    # builder.add_edge("agent", "tools")
+    # builder.add_edge("tools", "learn")
+    # builder.add_edge("learn", "agent")
+
+    graph = builder.compile()
+    
+    # Now run your graph! Experia will automatically learn from every cycle.
+    # await graph.ainvoke({"messages": [...]})
 
 if __name__ == "__main__":
     asyncio.run(main())
 ```
 
-### Manual Core Usage
+### Manual Core API
 
-You can also use the core API manually:
+You can also use the core API manually without any frameworks:
 
 ```python
 import asyncio
@@ -113,32 +118,24 @@ from experia.improvement.rules import RuleGenerator
 
 
 async def main():
-    # 1. Dependency Injection setup
     store = SQLiteStore("my_agent.db")
     await store.initialize()
 
-    # 2. Advanced LLM Cognition
-    evaluator = LLMEvaluator(model="gpt-4o-mini")
-    rule_generator = RuleGenerator(store=store, model="gpt-4o-mini")
-    
-    agent = Learner(store=store, evaluator=evaluator, rule_generator=rule_generator)
+    agent = Learner(
+        store=store, 
+        evaluator=LLMEvaluator(model="gpt-4o-mini"), 
+        rule_generator=RuleGenerator(store=store, model="gpt-4o-mini")
+    )
 
-    # 3. Use the async API to record actions (Evaluates and generates rules automatically)
+    # Record actions explicitly
     await agent.record(
         task="Deploy web app",
         action="Restart Nginx",
         result="failed with config syntax error",
     )
 
-    # 4. Retrieve memory context for your LLM's next action
-    context = await agent.retrieve_context()
-    print(context)
-
-    # 5. Nightly/Scheduled Reflection
-    # Analyzes the last N experiences to find patterns and extract global strategies.
-    # Developer-controlled to manage AI reasoning costs.
+    # Developer-controlled Nightly Reflection
     await agent.reflect(model="gpt-4o-mini", batch_size=50)
-
 
 if __name__ == "__main__":
     asyncio.run(main())
