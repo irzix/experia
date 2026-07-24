@@ -1,13 +1,13 @@
 import os
+import uuid
 from unittest.mock import AsyncMock, patch
 
 import pytest
 
+from experia.experience.models import ExperienceRecord
 from experia.memory.models import MemoryType
 from experia.memory.store import SQLiteStore
 from experia.reflection.consolidation import ReflectionEngine
-from experia.experience.models import ExperienceRecord
-import uuid
 
 
 class MockChoice:

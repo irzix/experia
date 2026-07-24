@@ -51,13 +51,58 @@ Experia acts as a cognitive plugin. It does not replace your agent frameworks (l
 
 ## Getting Started
 
-Experia uses an **asynchronous** and **pluggable** architecture. To use the advanced cognitive features (Root Cause Analysis, Rules, and Reflection), install with the `llm` extra:
+Experia uses an **asynchronous** and **pluggable** architecture. To use the advanced cognitive features (Root Cause Analysis, Rules, and Reflection), install with the `llm` extra. You can also install specific integration extras like `langchain`, `langgraph`, or `openai`:
 
 ```bash
-pip install "experia[llm]"
+pip install "experia[llm,langchain]"
 ```
 
 *Note: You will need an `OPENAI_API_KEY` (or other litellm supported keys) exported in your environment.*
+
+### LangChain Integration
+
+Experia provides native integrations for LangChain, allowing you to inject cognitive learning into existing agents without changing their core logic.
+
+```python
+import asyncio
+from experia.core.learner import Learner
+from experia.memory.store import SQLiteStore
+from experia.experience.llm_evaluator import LLMEvaluator
+from experia.integrations.langchain.callbacks import ExperiaCallbackHandler
+from experia.integrations.langchain.retrievers import ExperiaLearningRetriever
+from langchain.agents import initialize_agent, AgentType
+from langchain.llms import OpenAI
+from langchain.tools import Tool
+
+async def main():
+    store = SQLiteStore("my_agent.db")
+    await store.initialize()
+    agent = Learner(store=store, evaluator=LLMEvaluator(model="gpt-4o-mini"))
+
+    # 1. Native Experia Callback Handler
+    # Automatically listens to LangChain events, builds cohesive experiences, and records them.
+    experia_callback = ExperiaCallbackHandler(agent=agent)
+    
+    # 2. Native Learning Retriever
+    # Plugs into LCEL chains to automatically fetch past lessons and rules.
+    learning_retriever = ExperiaLearningRetriever(agent=agent)
+
+    # Initialize your standard LangChain agent
+    llm = OpenAI(temperature=0)
+    tools = [Tool(name="ExampleTool", func=lambda x: "Success", description="Example")]
+    
+    lc_agent = initialize_agent(tools, llm, agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION)
+    
+    # Run the agent with the Experia callback!
+    await lc_agent.arun("Deploy the application", callbacks=[experia_callback])
+
+if __name__ == "__main__":
+    asyncio.run(main())
+```
+
+### Manual Core Usage
+
+You can also use the core API manually:
 
 ```python
 import asyncio
