@@ -33,7 +33,7 @@ target-version = "py310"
 
 [tool.ruff.lint]
 select = ["E", "F", "I"] # pycodestyle, pyflakes, isort
-ignore = []
+ignore = ["E501"] # ignore line length because strings/queries can be long
 
 [tool.pytest.ini_options]
 minversion = "6.0"
