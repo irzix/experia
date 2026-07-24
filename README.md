@@ -52,13 +52,14 @@ from experia.core.learner import Learner
 from experia.memory.store import SQLiteStore
 from experia.experience.evaluator import SimpleHeuristicEvaluator
 
+
 async def main():
     # 1. Dependency Injection setup
     store = SQLiteStore("my_agent.db")
     await store.initialize()
-    
+
     evaluator = SimpleHeuristicEvaluator()
-    
+
     # 2. Initialize Learner
     agent = Learner(store=store, evaluator=evaluator)
 
@@ -66,12 +67,13 @@ async def main():
     await agent.record(
         task="Deploy web app",
         action="Restart Nginx",
-        result="failed with config syntax error"
+        result="failed with config syntax error",
     )
 
     # 4. Retrieve memory context for your LLM
     context = await agent.retrieve_context()
     print(context)
+
 
 if __name__ == "__main__":
     asyncio.run(main())

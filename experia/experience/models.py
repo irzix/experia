@@ -58,6 +58,13 @@ class Lesson(BaseModel):
             "example": "Always verify port availability using lsof -i :80 before starting the web server."
         },
     )
+    root_cause: Optional[str] = Field(
+        default=None,
+        description="The underlying reason why the action succeeded or failed.",
+        json_schema_extra={
+            "example": "The port 80 was still bound by an old docker container."
+        },
+    )
     confidence: float = Field(
         default=0.8,
         ge=0.0,

@@ -5,6 +5,7 @@ from experia.core.exceptions import ConfigurationError
 from experia.core.interfaces import Evaluator, MemoryStore
 from experia.core.logging import logger
 from experia.experience.models import ExperienceRecord
+from experia.improvement.rules import RuleGenerator
 from experia.memory.models import Memory, MemoryType
 
 
@@ -18,12 +19,14 @@ class Learner:
         self,
         store: MemoryStore,
         evaluator: Evaluator,
+        rule_generator: Optional[RuleGenerator] = None,
     ):
         if not store or not evaluator:
             raise ConfigurationError("Learner requires both a store and an evaluator.")
 
         self.store = store
         self.evaluator = evaluator
+        self.rule_generator = rule_generator
         self.context_builder = ContextBuilder()
         logger.info("Experia Learner initialized successfully.")
 
@@ -61,6 +64,10 @@ class Learner:
             logger.info(
                 f"Learned and remembered lesson from experience {experience.id}"
             )
+
+            # Optionally generate a global rule
+            if self.rule_generator:
+                await self.rule_generator.consolidate_lesson(lesson)
 
     async def retrieve_context(self, query: str = "", limit: int = 5) -> str:
         """Searches cognitive memory and builds a prompt string asynchronously."""

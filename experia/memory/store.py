@@ -41,11 +41,18 @@ class SQLiteStore:
                         id TEXT PRIMARY KEY,
                         experience_id TEXT NOT NULL,
                         content TEXT NOT NULL,
+                        root_cause TEXT,
                         confidence REAL NOT NULL,
                         created_at TEXT NOT NULL,
                         FOREIGN KEY (experience_id) REFERENCES experiences (id)
                     )
                 """)
+
+                # Check for existing table and add root_cause if missing (migration)
+                cursor = await conn.execute("PRAGMA table_info(lessons)")
+                columns = [row[1] for row in await cursor.fetchall()]
+                if "root_cause" not in columns:
+                    await conn.execute("ALTER TABLE lessons ADD COLUMN root_cause TEXT")
 
                 # Memories Table
                 await conn.execute("""
@@ -120,13 +127,14 @@ class SQLiteStore:
             async with aiosqlite.connect(self.db_path) as conn:
                 await conn.execute(
                     """
-                    INSERT INTO lessons (id, experience_id, content, confidence, created_at)
-                    VALUES (?, ?, ?, ?, ?)
+                    INSERT INTO lessons (id, experience_id, content, root_cause, confidence, created_at)
+                    VALUES (?, ?, ?, ?, ?, ?)
                     """,
                     (
                         str(lesson.id),
                         str(lesson.experience_id),
                         lesson.content,
+                        lesson.root_cause,
                         lesson.confidence,
                         lesson.created_at.isoformat(),
                     ),
