@@ -23,18 +23,15 @@ class MockResponse:
 
 @pytest.mark.asyncio
 async def test_llm_evaluator():
-    evaluator = LLMEvaluator(model="test-model")
-    experience = ExperienceRecord(
-        task="run command", action="ls /foo", result="No such file or directory"
-    )
-
-    # Mock the acompletion call
-    with patch(
-        "experia.experience.llm_evaluator.litellm.acompletion", new_callable=AsyncMock
-    ) as mock_acompletion:
+    # Mock litellm in the module BEFORE constructing the evaluator
+    with patch("experia.experience.llm_evaluator.litellm") as mock_litellm:
+        evaluator = LLMEvaluator(model="test-model")
+        experience = ExperienceRecord(
+            task="run command", action="ls /foo", result="No such file or directory"
+        )
         # Provide a mock JSON string that matches the schema
         mock_json = '{"lesson": "Check if directory exists before listing", "root_cause": "Typo in directory name", "confidence": 0.9}'
-        mock_acompletion.return_value = MockResponse(mock_json)
+        mock_litellm.acompletion = AsyncMock(return_value=MockResponse(mock_json))
 
         lesson = await evaluator.evaluate(experience)
 
@@ -42,6 +39,7 @@ async def test_llm_evaluator():
         assert lesson.content == "Check if directory exists before listing"
         assert lesson.root_cause == "Typo in directory name"
         assert lesson.confidence == 0.9
+
 
 
 @pytest.mark.asyncio
@@ -61,12 +59,12 @@ async def test_rule_generator():
         )
 
         with patch(
-            "experia.improvement.rules.litellm.acompletion", new_callable=AsyncMock
-        ) as mock_acompletion:
+            "experia.improvement.rules.litellm"
+        ) as mock_litellm:
             # Mock generating a valid rule
-            mock_acompletion.return_value = MockResponse(
+            mock_litellm.acompletion = AsyncMock(return_value=MockResponse(
                 "Always check port bindings before starting services."
-            )
+            ))
 
             memory = await generator.consolidate_lesson(lesson)
 

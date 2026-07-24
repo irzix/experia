@@ -41,12 +41,11 @@ async def test_reflection_engine():
             )
 
         with patch(
-            "experia.reflection.consolidation.litellm.acompletion",
-            new_callable=AsyncMock,
-        ) as mock_acompletion:
-            mock_acompletion.return_value = MockResponse(
+            "experia.reflection.consolidation.litellm",
+        ) as mock_litellm:
+            mock_litellm.acompletion = AsyncMock(return_value=MockResponse(
                 "Always use docker compose for web app deployments."
-            )
+            ))
 
             memory = await engine.reflect(batch_size=10)
 

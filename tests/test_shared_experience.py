@@ -33,11 +33,13 @@ async def test_shared_experience_multi_agent():
         # Allow async recording to finish
         await asyncio.sleep(0.1)
 
-        # Ensure Coder context includes the syntax error lesson
+        # Ensure Coder context includes the failure lesson (heuristic evaluator generates
+        # a generic message containing the action name, not the raw error text)
         coder_context = await coder.retrieve_context(query="Python script")
         assert "python main.py" in coder_context
 
-        # Ensure Researcher context DOES NOT include the syntax error lesson
+        # Ensure Researcher context DOES NOT include Coder's lesson
+        # (because the simple heuristic evaluator saves lessons per-agent_role)
         researcher_context = await researcher.retrieve_context(query="Python script")
         assert "python main.py" not in researcher_context
 
