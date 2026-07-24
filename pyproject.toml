@@ -18,7 +18,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = ["pytest>=8.0.0", "pytest-asyncio>=0.23.5", "ruff>=0.3.0", "aiosqlite>=0.20.0"]
+dev = ["pytest>=8.0.0", "pytest-asyncio>=0.23.5", "ruff>=0.3.0", "aiosqlite>=0.20.0", "litellm>=1.0.0", "langchain-core>=0.3", "langgraph"]
 llm = ["litellm>=1.0.0"]
 langchain = ["langchain-core>=0.3"]
 langgraph = ["langgraph"]
