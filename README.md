@@ -18,31 +18,30 @@ Current AI agents start from zero on every interaction. Experia adds an **experi
 
 ```mermaid
 flowchart TD
-    subgraph Agent Application
-        Agent[AI Agent / LLM]
-        Task[Execute Task]
-        Developer[Developer / Cron Job]
-        Agent -- Takes Action --> Task
+    subgraph Multi-Agent Swarm
+        AgentA[Coder Agent]
+        AgentB[Researcher Agent]
+        Supervisor[Supervisor Agent]
     end
 
-    subgraph Experia AI Cognitive Layer [Experia Async Cognitive Layer]
-        Store[(MemoryStore)]
+    subgraph Experia AI Cognitive Layer
+        Store[(Shared MemoryStore)]
         Eval[LLM Evaluator\nRoot Cause Analysis]
         RuleGen[Rule Generator]
         Reflect[Reflection Engine\nBatch Analysis]
         Ctx[Context Builder]
         
-        Task -- 1. await record() --> Store
+        AgentA & AgentB -- 1. Record Action --> Store
         Store -- 2. Evaluate Outcome --> Eval
-        Eval -- 3. Extract Lesson --> Store
+        Eval -- 3. Extract Lesson (agent_role) --> Store
         Eval -- 4. Consolidate --> RuleGen
         RuleGen -- 5. Generate RULE --> Store
-        Developer -- 6. await reflect() --> Reflect
-        Reflect -- 7. Generate STRATEGY --> Store
-        Store -- 8. await retrieve_context() --> Ctx
+        Supervisor -- 6. Trigger reflect() --> Reflect
+        Reflect -- 7. Generate Global STRATEGY --> Store
+        Store -- 8. retrieve_context(agent_role) --> Ctx
     end
     
-    Ctx -- 9. Inject Knowledge --> Agent
+    Ctx -- 9. Inject Shared Knowledge --> AgentA & AgentB & Supervisor
 ```
 
 ## Integrations
