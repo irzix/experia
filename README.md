@@ -147,6 +147,62 @@ if __name__ == "__main__":
     asyncio.run(main())
 ```
 
+### Semantic Retrieval & the Feedback Loop
+
+Retrieval is semantic when you attach an `Embedder`. Experia embeds memories on
+write, ranks them by cosine similarity (blended with importance) on read, and
+transparently falls back to keyword search when no embedder is configured — so
+local mode stays dependency-light.
+
+```python
+from experia.memory.embeddings import LiteLLMEmbedder
+
+agent = Learner(
+    store=store,
+    evaluator=LLMEvaluator(model="gpt-4o-mini"),
+    embedder=LiteLLMEmbedder(model="text-embedding-3-small"),  # optional
+)
+
+# Capture is non-blocking: the raw experience is saved immediately and the
+# (expensive) evaluation runs in the background.
+await agent.record(task="Deploy web app", action="Restart Nginx", result="failed")
+await agent.flush()  # await pending background evaluations when you need them
+
+# Close the loop: tell Experia whether applying a memory actually helped.
+# Confidence moves toward 1.0 on success, 0.0 on failure.
+await agent.reinforce(memory_id, success=True)
+
+# Housekeeping: sweep expired memories.
+await agent.prune()
+```
+
+Near-duplicate lessons are de-duplicated on write (the existing memory is
+reinforced instead of storing a copy).
+
+## Project Status
+
+**Implemented today**
+
+- Core experience → lesson → memory loop (`Learner`)
+- `SQLiteStore` with a reused connection, indexes, and atomic lesson+memory writes
+- Pluggable `Embedder` + semantic retrieval (keyword fallback)
+- Background (non-blocking) evaluation with `flush()`
+- Confidence reinforcement (`reinforce`), memory de-duplication, and expiry (`prune`)
+- LLM evaluator, rule generation, reflection engine
+- LangChain & LangGraph integrations
+
+**Planned (not yet implemented)**
+
+The following backends are on the roadmap and are currently placeholder modules —
+they are **not** production-ready yet:
+
+- PostgreSQL + `pgvector` store
+- Mem0 and Zep memory adapters
+- CrewAI / OpenAI Agents / AutoGen native integrations
+- Distributed production mode (Redis-backed queue + workers)
+
+Contributions toward these are welcome — see [CONTRIBUTING.md](CONTRIBUTING.md).
+
 ## License
 
 This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.

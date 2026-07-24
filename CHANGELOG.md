@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.0] - 2026-07-24
+
+### Added
+- **Semantic retrieval:** New pluggable `Embedder` protocol with a default `LiteLLMEmbedder`. Memories are embedded on write and ranked by cosine similarity (blended with importance); keyword search remains the fallback when no embedder is configured.
+- **Feedback loop:** `Learner.reinforce(memory_id, success)` and `SQLiteStore.update_memory_feedback` update memory confidence via an exponential moving average and track `reinforcement_count` / `success_count`.
+- **Memory lifecycle:** Near-duplicate memories are de-duplicated on write (existing memory reinforced instead of copied); `Learner.prune()` / `SQLiteStore.prune_expired()` sweep expired memories.
+- **Non-blocking capture:** `record()` now persists the experience immediately and evaluates in the background by default; `Learner.flush()` awaits pending evaluations. Configurable via `background_evaluation`.
+
+### Changed
+- **SQLiteStore:** Reuses a single connection (WAL best-effort) with a write lock instead of reconnecting per operation, adds indexes on hot columns, and writes a lesson and its derived memory atomically in one transaction (`save_lesson_and_memory`). Added `get_memory`, `close`, and expiry-aware search.
+- Top-level `experia` package now exports `Learner`, `SQLiteStore`, `SimpleHeuristicEvaluator`, `Embedder`, `LiteLLMEmbedder`, `Memory`, and `MemoryType`.
+
+### Docs
+- README now has a **Project Status** section clarifying which backends are implemented versus planned (Postgres/pgvector, Mem0, Zep, distributed mode).
+
 ## [0.2.1] - 2026-07-24
 
 ### Added
