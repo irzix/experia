@@ -78,7 +78,8 @@ async def test_langgraph_nodes():
         assert "messages" in update
         sys_msg = update["messages"][0]
         assert (
-            getattr(sys_msg, "type", type(sys_msg).__name__.lower()) == "systemmessage"
+            getattr(sys_msg, "type", type(sys_msg).__name__.lower()) == "system"
+            or getattr(sys_msg, "type", type(sys_msg).__name__.lower()) == "systemmessage"
         )
         assert "Connection refused" in sys_msg.content or "failed" in sys_msg.content
 
