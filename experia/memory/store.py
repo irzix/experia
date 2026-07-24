@@ -119,6 +119,32 @@ class SQLiteStore:
         except Exception as e:
             raise StorageError(f"Failed to retrieve experience: {e}")
 
+    async def get_recent_experiences(self, limit: int = 50) -> List[ExperienceRecord]:
+        """Retrieves the most recent experiences asynchronously."""
+        experiences = []
+        try:
+            async with aiosqlite.connect(self.db_path) as conn:
+                cursor = await conn.execute(
+                    "SELECT * FROM experiences ORDER BY created_at DESC LIMIT ?",
+                    (limit,),
+                )
+                rows = await cursor.fetchall()
+
+                for row in rows:
+                    experiences.append(
+                        ExperienceRecord(
+                            id=UUID(row[0]),
+                            task=row[1],
+                            action=row[2],
+                            result=row[3],
+                            context=json.loads(row[4]) if row[4] else {},
+                            created_at=datetime.fromisoformat(row[5]),
+                        )
+                    )
+            return experiences
+        except Exception as e:
+            raise StorageError(f"Failed to retrieve recent experiences: {e}")
+
     # --- Lesson Methods ---
 
     async def save_lesson(self, lesson: Lesson) -> None:

@@ -69,6 +69,17 @@ class Learner:
             if self.rule_generator:
                 await self.rule_generator.consolidate_lesson(lesson)
 
+    async def reflect(self, model: str = "gpt-4o", batch_size: int = 50) -> None:
+        """
+        Manually triggers the Reflection Engine to analyze past experiences and
+        extract high-level STRATEGY memories. This is developer-controlled
+        and not run automatically due to reasoning cost.
+        """
+        from experia.reflection.consolidation import ReflectionEngine
+
+        engine = ReflectionEngine(store=self.store, model=model)
+        await engine.reflect(batch_size=batch_size)
+
     async def retrieve_context(self, query: str = "", limit: int = 5) -> str:
         """Searches cognitive memory and builds a prompt string asynchronously."""
         memories = await self.store.search_memories(query=query, limit=limit)

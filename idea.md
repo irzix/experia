@@ -223,13 +223,29 @@ Memory(
 
 ## 3. Reflection Engine
 
-Transforms raw experiences into reusable knowledge.
+Reflection transforms raw experiences into reusable knowledge.
 
-Tasks:
-- Extract lessons
-- Merge similar experiences
-- Detect failed strategies
-- Improve future behavior
+Because reflection requires expensive reasoning over multiple experiences,
+identifying patterns, extracting lessons, and updating agent knowledge,
+it is **never automatically executed** in the core runtime.
+
+Reflection is **developer-controlled**.
+
+Execution modes:
+- **Manual trigger:** Developers explicitly trigger reflection.
+- **Scheduled jobs:** Nightly batch processing, after major failures, or during idle time.
+- **Future smart triggers:** e.g. `agent.should_reflect()` based on failure streaks.
+
+This allows developers to control:
+- when reflection happens
+- which model is used
+- cost limits
+- batch size
+
+API Example:
+```python
+await agent.reflect(model="gpt-4o-mini", batch_size=50)
+```
 
 ## 4. Context Builder
 

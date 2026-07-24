@@ -1,9 +1,11 @@
+import os
+import uuid
 from unittest.mock import AsyncMock, patch
 
 import pytest
 
 from experia.experience.llm_evaluator import LLMEvaluator
-from experia.experience.models import ExperienceRecord
+from experia.experience.models import ExperienceRecord, Lesson
 from experia.improvement.rules import RuleGenerator
 from experia.memory.models import MemoryType
 from experia.memory.store import SQLiteStore
@@ -42,31 +44,14 @@ async def test_llm_evaluator():
         assert lesson.confidence == 0.9
 
 
-import os
-
 @pytest.mark.asyncio
 async def test_rule_generator():
     db_path = "test_rule_generator.db"
     store = SQLiteStore(db_path)
     await store.initialize()
-    
+
     try:
         generator = RuleGenerator(store=store, model="test-model")
-
-    import uuid
-
-    from experia.experience.models import Lesson
-
-    lesson = Lesson(
-        experience_id=uuid.uuid4(),
-        content="Always verify port availability using lsof -i :80 before starting the web server.",
-        root_cause="Port conflict",
-        confidence=1.0,
-    )
-
-        import uuid
-
-        from experia.experience.models import Lesson
 
         lesson = Lesson(
             experience_id=uuid.uuid4(),
@@ -88,7 +73,9 @@ async def test_rule_generator():
             assert memory is not None
             assert memory.type == MemoryType.RULE
             assert memory.importance == 1.0
-            assert memory.content == "Always check port bindings before starting services."
+            assert (
+                memory.content == "Always check port bindings before starting services."
+            )
     finally:
         if os.path.exists(db_path):
             os.remove(db_path)

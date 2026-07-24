@@ -13,6 +13,7 @@ class MemoryType(str, Enum):
     PREFERENCE = "preference"
     LESSON = "lesson"
     RULE = "rule"
+    STRATEGY = "strategy"
     EXPERIENCE = "experience"
 
 
