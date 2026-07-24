@@ -57,5 +57,7 @@ async def test_reflection_engine():
                 memory.content == "Always use docker compose for web app deployments."
             )
     finally:
-        if os.path.exists(db_path):
-            os.remove(db_path)
+        await store.close()
+        for suffix in ("", "-wal", "-shm"):
+            if os.path.exists(db_path + suffix):
+                os.remove(db_path + suffix)

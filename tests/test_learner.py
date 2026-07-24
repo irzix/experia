@@ -20,8 +20,10 @@ async def learner():
     yield learner_instance
 
     # Cleanup after test
-    if os.path.exists(db_path):
-        os.remove(db_path)
+    await store.close()
+    for suffix in ("", "-wal", "-shm"):
+        if os.path.exists(db_path + suffix):
+            os.remove(db_path + suffix)
 
 
 @pytest.mark.asyncio
@@ -34,6 +36,7 @@ async def test_learner_record_failure(learner):
         action="restart nginx",
         result="failed with error 500",
     )
+    await learner.flush()  # wait for background evaluation
 
     # Assert experience is saved
     saved_exp = await learner.store.get_experience(exp.id)
@@ -58,6 +61,7 @@ async def test_learner_record_success(learner):
         action="increase max heap size",
         result="success, app is stable",
     )
+    await learner.flush()  # wait for background evaluation
 
     memories = await learner.store.search_memories(memory_type=MemoryType.LESSON)
     assert len(memories) == 1
@@ -77,6 +81,7 @@ async def test_learner_manual_memory_and_context(learner):
         action="use generic variable names",
         result="failed code review",
     )
+    await learner.flush()  # wait for background evaluation
 
     # Retrieve context
     context = await learner.retrieve_context()
@@ -87,3 +92,58 @@ async def test_learner_manual_memory_and_context(learner):
     assert "User prefers detailed explanations" in context
     assert "[LESSON]" in context
     assert "failed" in context
+
+
+class FakeEmbedder:
+    """Deterministic word-overlap embedder for tests (no network)."""
+
+    _vocab = ["deploy", "nginx", "port", "database", "python", "logs", "restart"]
+
+    async def embed(self, texts):
+        return [self._vec(t) for t in texts]
+
+    async def embed_one(self, text):
+        return self._vec(text)
+
+    def _vec(self, text):
+        low = text.lower()
+        return [1.0 if word in low else 0.0 for word in self._vocab]
+
+
+@pytest.mark.asyncio
+async def test_learner_reinforce_updates_confidence(learner):
+    mem = await learner.remember("Check the database before deploy", MemoryType.LESSON)
+    start = mem.confidence
+
+    updated = await learner.reinforce(mem.id, success=True)
+    assert updated is not None
+    assert updated.confidence > start
+    assert updated.reinforcement_count == 1
+
+
+@pytest.mark.asyncio
+async def test_learner_dedup_with_embedder():
+    import os
+
+    db_path = "test_learner_dedup.db"
+    store = SQLiteStore(db_path=db_path)
+    await store.initialize()
+    try:
+        agent = Learner(
+            store=store,
+            evaluator=SimpleHeuristicEvaluator(),
+            embedder=FakeEmbedder(),
+        )
+        first = await agent.remember("restart nginx on port failure", MemoryType.LESSON)
+        # Near-identical content → same embedding → should dedup into `first`.
+        second = await agent.remember("restart nginx on port failure", MemoryType.LESSON)
+        assert second.id == first.id
+        assert second.reinforcement_count == 1
+
+        all_lessons = await store.search_memories(memory_type=MemoryType.LESSON)
+        assert len(all_lessons) == 1
+    finally:
+        await store.close()
+        for suffix in ("", "-wal", "-shm"):
+            if os.path.exists(db_path + suffix):
+                os.remove(db_path + suffix)

@@ -77,5 +77,7 @@ async def test_rule_generator():
                 memory.content == "Always check port bindings before starting services."
             )
     finally:
-        if os.path.exists(db_path):
-            os.remove(db_path)
+        await store.close()
+        for suffix in ("", "-wal", "-shm"):
+            if os.path.exists(db_path + suffix):
+                os.remove(db_path + suffix)

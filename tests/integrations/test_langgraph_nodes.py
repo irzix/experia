@@ -59,6 +59,7 @@ async def test_langgraph_nodes():
 
         # Allow async record to finish
         await asyncio.sleep(0.1)
+        await agent.flush()  # await background evaluation
 
         recent = await store.get_recent_experiences(limit=5)
         assert len(recent) == 1
@@ -84,5 +85,7 @@ async def test_langgraph_nodes():
         assert "Connection refused" in sys_msg.content or "failed" in sys_msg.content
 
     finally:
-        if os.path.exists(db_path):
-            os.remove(db_path)
+        await store.close()
+        for suffix in ("", "-wal", "-shm"):
+            if os.path.exists(db_path + suffix):
+                os.remove(db_path + suffix)

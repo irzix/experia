@@ -78,6 +78,7 @@ async def test_experience_flow():
 
         # Give asyncio tasks a moment to complete (record is fire-and-forget)
         await asyncio.sleep(0.1)
+        await agent.flush()  # await background evaluation
 
         # Verify the experience was properly compiled and stored
         recent = await store.get_recent_experiences(limit=5)
@@ -100,5 +101,7 @@ async def test_experience_flow():
         assert memories[0].type.name == "LESSON"
 
     finally:
-        if os.path.exists(db_path):
-            os.remove(db_path)
+        await store.close()
+        for suffix in ("", "-wal", "-shm"):
+            if os.path.exists(db_path + suffix):
+                os.remove(db_path + suffix)

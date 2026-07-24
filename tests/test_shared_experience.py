@@ -1,4 +1,3 @@
-import asyncio
 import os
 import uuid
 
@@ -31,7 +30,7 @@ async def test_shared_experience_multi_agent():
         )
 
         # Allow async recording to finish
-        await asyncio.sleep(0.1)
+        await coder.flush()
 
         # Ensure Coder context includes the syntax error lesson
         coder_context = await coder.retrieve_context(query="Python script")
@@ -62,5 +61,7 @@ async def test_shared_experience_multi_agent():
         assert "Always write unit tests" in researcher_context_2
 
     finally:
-        if os.path.exists(db_path):
-            os.remove(db_path)
+        await store.close()
+        for suffix in ("", "-wal", "-shm"):
+            if os.path.exists(db_path + suffix):
+                os.remove(db_path + suffix)
