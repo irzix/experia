@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
 from enum import Enum
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
 from uuid import UUID, uuid4
 
 from pydantic import BaseModel, Field
@@ -65,4 +65,22 @@ class Memory(BaseModel):
     )
     expires_at: Optional[datetime] = Field(
         default=None, description="Optional expiration time for ephemeral memories."
+    )
+    reinforcement_count: int = Field(
+        default=0,
+        ge=0,
+        description="How many times this memory has been validated by an outcome.",
+    )
+    success_count: int = Field(
+        default=0,
+        ge=0,
+        description="How many of those validations were successful outcomes.",
+    )
+
+    # --- Semantic retrieval ---
+    embedding: Optional[List[float]] = Field(
+        default=None,
+        exclude=True,
+        repr=False,
+        description="Vector embedding of `content`, used for semantic search.",
     )
