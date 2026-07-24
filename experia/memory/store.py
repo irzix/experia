@@ -135,8 +135,9 @@ class SQLiteStore:
                         task=row[1],
                         action=row[2],
                         result=row[3],
-                        context=json.loads(row[4]) if row[4] else {},
-                        created_at=datetime.fromisoformat(row[5]),
+                        agent_role=row[4],
+                        context=json.loads(row[5]) if row[5] else {},
+                        created_at=datetime.fromisoformat(row[6]),
                     )
             return None
         except Exception as e:

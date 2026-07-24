@@ -41,13 +41,11 @@ class Learner:
     ) -> ExperienceRecord:
         """Records an agent's action and its result asynchronously."""
         experience = ExperienceRecord(
-            id=uuid.uuid4(),
             task=task,
             action=action,
             result=result,
             agent_role=self.agent_role,
             context=context or {},
-            created_at=datetime.utcnow(),
         )
         await self.store.save_experience(experience)
         logger.debug(f"Recorded experience {experience.id} for task '{task}'")
@@ -63,7 +61,6 @@ class Learner:
             await self.store.save_lesson(lesson)
 
             memory = Memory(
-                id=uuid.uuid4(),
                 content=lesson.content,
                 type=MemoryType.LESSON,
                 agent_role=self.agent_role,

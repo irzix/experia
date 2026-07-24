@@ -35,16 +35,10 @@ async def test_shared_experience_multi_agent():
 
         # Ensure Coder context includes the syntax error lesson
         coder_context = await coder.retrieve_context(query="Python script")
-        assert "SyntaxError" in coder_context
+        assert "python main.py" in coder_context
 
         # Ensure Researcher context DOES NOT include the syntax error lesson
-        # (Since the heuristic evaluator extracts a generic lesson containing "failed", we search for that)
         researcher_context = await researcher.retrieve_context(query="Python script")
-        assert "SyntaxError" not in researcher_context
-        # Actually, our SimpleHeuristicEvaluator doesn't include "SyntaxError" in the content,
-        # it just says "The action 'Run python main.py' failed during 'Write Python script'."
-        # Let's adjust our check:
-        assert "python main.py" in coder_context
         assert "python main.py" not in researcher_context
 
         # Now let's simulate a global Strategy memory being created (e.g., via ReflectionEngine)
