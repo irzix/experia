@@ -42,12 +42,16 @@ async def test_llm_evaluator():
         assert lesson.confidence == 0.9
 
 
+import os
+
 @pytest.mark.asyncio
 async def test_rule_generator():
-    store = SQLiteStore(":memory:")
+    db_path = "test_rule_generator.db"
+    store = SQLiteStore(db_path)
     await store.initialize()
-
-    generator = RuleGenerator(store=store, model="test-model")
+    
+    try:
+        generator = RuleGenerator(store=store, model="test-model")
 
     import uuid
 
@@ -60,17 +64,31 @@ async def test_rule_generator():
         confidence=1.0,
     )
 
-    with patch(
-        "experia.improvement.rules.litellm.acompletion", new_callable=AsyncMock
-    ) as mock_acompletion:
-        # Mock generating a valid rule
-        mock_acompletion.return_value = MockResponse(
-            "Always check port bindings before starting services."
+        import uuid
+
+        from experia.experience.models import Lesson
+
+        lesson = Lesson(
+            experience_id=uuid.uuid4(),
+            content="Always verify port availability using lsof -i :80 before starting the web server.",
+            root_cause="Port conflict",
+            confidence=1.0,
         )
 
-        memory = await generator.consolidate_lesson(lesson)
+        with patch(
+            "experia.improvement.rules.litellm.acompletion", new_callable=AsyncMock
+        ) as mock_acompletion:
+            # Mock generating a valid rule
+            mock_acompletion.return_value = MockResponse(
+                "Always check port bindings before starting services."
+            )
 
-        assert memory is not None
-        assert memory.type == MemoryType.RULE
-        assert memory.importance == 1.0
-        assert memory.content == "Always check port bindings before starting services."
+            memory = await generator.consolidate_lesson(lesson)
+
+            assert memory is not None
+            assert memory.type == MemoryType.RULE
+            assert memory.importance == 1.0
+            assert memory.content == "Always check port bindings before starting services."
+    finally:
+        if os.path.exists(db_path):
+            os.remove(db_path)
