@@ -12,6 +12,28 @@ Current AI agents start from zero on every interaction. Experia adds an **experi
 
 **Observation → Action → Result → Experience → Lesson → Memory → Better Future Action**
 
+```mermaid
+flowchart TD
+    subgraph Agent Application
+        Agent[AI Agent / LLM]
+        Task[Execute Task]
+        Agent -- Takes Action --> Task
+    end
+
+    subgraph Experia AI Cognitive Layer
+        Store[(Memory Store)]
+        Eval[Evaluator Engine]
+        Ctx[Context Builder]
+        
+        Task -- 1. Record Outcome --> Store
+        Store -- 2. Analyze Experience --> Eval
+        Eval -- 3. Extract Lesson --> Store
+        Store -- 4. Retrieve Memories --> Ctx
+    end
+    
+    Ctx -- 5. Inject Knowledge --> Agent
+```
+
 ## Integrations
 
 Experia acts as a cognitive plugin. It does not replace your agent frameworks (like LangChain, AutoGen, CrewAI), it enhances them by managing long-term memory, learned experiences, user knowledge, and behavioral patterns.
