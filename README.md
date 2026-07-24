@@ -37,7 +37,7 @@ flowchart TD
         Eval -- 3. Extract Lesson --> Store
         Eval -- 4. Consolidate --> RuleGen
         RuleGen -- 5. Generate RULE --> Store
-        Developer -. 6. await reflect() .-> Reflect
+        Developer -- 6. await reflect() --> Reflect
         Reflect -- 7. Generate STRATEGY --> Store
         Store -- 8. await retrieve_context() --> Ctx
     end
