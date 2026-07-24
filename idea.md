@@ -183,9 +183,7 @@ Future Improvement
 API:
 ```python
 agent.record_experience(
-    task="deploy application",
-    action="restart container",
-    result="failed"
+    task="deploy application", action="restart container", result="failed"
 )
 ```
 
@@ -239,9 +237,7 @@ Transforms raw memories into structured, usable intelligence for the agent.
 
 API:
 ```python
-context = agent.build_context(
-    query="answer user question"
-)
+context = agent.build_context(query="answer user question")
 ```
 
 Goal:
@@ -287,11 +283,7 @@ from experia import Learner
 
 agent = Learner()
 
-agent.record(
-    task="Fix production issue",
-    action="restart nginx",
-    outcome="failed"
-)
+agent.record(task="Fix production issue", action="restart nginx", outcome="failed")
 
 lesson = agent.learn()
 

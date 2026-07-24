@@ -9,6 +9,7 @@ class ExperienceRecord(BaseModel):
     """
     Represents a raw experience captured from an agent's execution.
     """
+
     id: UUID = Field(default_factory=uuid4)
     task: str
     action: str
@@ -21,6 +22,7 @@ class Lesson(BaseModel):
     """
     Represents a lesson extracted from one or more experiences.
     """
+
     id: UUID = Field(default_factory=uuid4)
     experience_id: UUID
     content: str
