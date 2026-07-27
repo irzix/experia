@@ -1,7 +1,7 @@
 import asyncio
-import json
+from contextlib import asynccontextmanager
 from datetime import datetime, timezone
-from typing import List, Optional
+from typing import AsyncIterator, List, Optional
 from uuid import UUID
 
 import aiosqlite
@@ -10,7 +10,29 @@ from experia.core.exceptions import StorageError
 from experia.core.logging import logger
 from experia.experience.models import ExperienceRecord, Lesson
 from experia.memory.embeddings import cosine_similarity
+from experia.memory.migrations import SchemaMigrator
 from experia.memory.models import Memory, MemoryType
+from experia.memory.retrieval import (
+    RetrievalEngine,
+    RetrievalQuery,
+    rank_memories,
+)
+from experia.memory.serialization import (
+    EncodedLesson,
+    EncodedMemory,
+    StorageSerializer,
+)
+from experia.memory.transactions import SQLiteTransactionManager
+from experia.memory.vector_index import (
+    VectorCandidateIndex,
+    VectorIndexRebuildResult,
+)
+
+_MEMORY_COLUMNS = (
+    "id, content, type, agent_role, confidence, importance, source, metadata, "
+    "embedding, reinforcement_count, success_count, created_at, updated_at, "
+    "expires_at"
+)
 
 
 class SQLiteStore:
@@ -27,287 +49,273 @@ class SQLiteStore:
         self.db_path = db_path
         self._conn: Optional[aiosqlite.Connection] = None
         self._write_lock = asyncio.Lock()
+        self._lifecycle_lock = asyncio.Lock()
+        self._operations_drained = asyncio.Event()
+        self._operations_drained.set()
+        self._active_operations = 0
+        self._lifecycle_state = "open"
+        self._close_task: Optional[asyncio.Task[None]] = None
+        self._serializer = StorageSerializer()
+        self._transactions = SQLiteTransactionManager(
+            self._require_conn, self._write_lock
+        )
+        self._vector_index = VectorCandidateIndex(
+            self._require_conn,
+            self._transactions,
+        )
+        self._retrieval_engine = RetrievalEngine(
+            self._require_conn,
+            self._serializer,
+            self._vector_index,
+        )
+        self._migrator = SchemaMigrator(self._transactions)
 
     def _require_conn(self) -> aiosqlite.Connection:
+        if self._lifecycle_state == "closed":
+            raise StorageError(
+                "Store is closed.",
+                operation="lifecycle",
+            )
         if self._conn is None:
-            raise StorageError("Store not initialized. Call `await store.initialize()`.")
+            raise StorageError(
+                "Store not initialized. Call `await store.initialize()`.",
+            )
         return self._conn
 
-    async def initialize(self) -> None:
-        """Opens the connection and initialises the schema and indexes."""
+    @asynccontextmanager
+    async def _operation(self) -> AsyncIterator[None]:
+        """Lease the connection lifecycle for one accepted public operation."""
+        async with self._lifecycle_lock:
+            if self._lifecycle_state != "open":
+                raise StorageError(
+                    "Store is closing or closed.",
+                    operation="lifecycle",
+                )
+            self._active_operations += 1
+            self._operations_drained.clear()
+
         try:
-            if self._conn is None:
-                self._conn = await aiosqlite.connect(self.db_path)
-                # WAL improves read/write concurrency but is unsupported on some
-                # (e.g. networked) filesystems — enable it best-effort.
-                try:
-                    await self._conn.execute("PRAGMA journal_mode=WAL")
-                except Exception as e:
-                    logger.debug(f"WAL mode unavailable, using default journal: {e}")
-                await self._conn.execute("PRAGMA foreign_keys=ON")
+            yield
+        finally:
+            async with self._lifecycle_lock:
+                self._active_operations -= 1
+                if self._active_operations == 0:
+                    self._operations_drained.set()
 
-            conn = self._conn
+    async def initialize(self) -> None:
+        """Open the connection and migrate its schema to the current version."""
+        async with self._operation():
+            try:
+                if self._conn is None:
+                    self._conn = await aiosqlite.connect(self.db_path)
+                    # WAL improves read/write concurrency but is unsupported on some
+                    # (e.g. networked) filesystems — enable it best-effort.
+                    try:
+                        await self._conn.execute("PRAGMA journal_mode=WAL")
+                    except Exception as e:
+                        logger.debug(
+                            f"WAL mode unavailable, using default journal: {e}"
+                        )
+                    await self._conn.execute("PRAGMA foreign_keys=ON")
 
-            await conn.execute("""
-                CREATE TABLE IF NOT EXISTS experiences (
-                    id TEXT PRIMARY KEY,
-                    task TEXT NOT NULL,
-                    action TEXT NOT NULL,
-                    result TEXT NOT NULL,
-                    agent_role TEXT NOT NULL DEFAULT 'default',
-                    context TEXT,
-                    created_at TEXT NOT NULL
-                )
-            """)
-
-            await conn.execute("""
-                CREATE TABLE IF NOT EXISTS lessons (
-                    id TEXT PRIMARY KEY,
-                    experience_id TEXT NOT NULL,
-                    content TEXT NOT NULL,
-                    agent_role TEXT NOT NULL DEFAULT 'default',
-                    root_cause TEXT,
-                    confidence REAL NOT NULL,
-                    created_at TEXT NOT NULL,
-                    FOREIGN KEY (experience_id) REFERENCES experiences (id)
-                )
-            """)
-
-            await conn.execute("""
-                CREATE TABLE IF NOT EXISTS memories (
-                    id TEXT PRIMARY KEY,
-                    content TEXT NOT NULL,
-                    type TEXT NOT NULL,
-                    agent_role TEXT NOT NULL DEFAULT 'default',
-                    confidence REAL NOT NULL,
-                    importance REAL NOT NULL,
-                    source TEXT,
-                    metadata TEXT,
-                    embedding TEXT,
-                    reinforcement_count INTEGER NOT NULL DEFAULT 0,
-                    success_count INTEGER NOT NULL DEFAULT 0,
-                    created_at TEXT NOT NULL,
-                    updated_at TEXT NOT NULL,
-                    expires_at TEXT
-                )
-            """)
-
-            await self._run_migrations(conn)
-            await self._create_indexes(conn)
-            await conn.commit()
-        except Exception as e:
-            raise StorageError(f"Failed to initialize SQLite database: {e}")
-
-    async def _run_migrations(self, conn: aiosqlite.Connection) -> None:
-        """Additive, idempotent column migrations for existing databases."""
-        migrations = {
-            "lessons": [
-                ("root_cause", "ALTER TABLE lessons ADD COLUMN root_cause TEXT"),
-                (
-                    "agent_role",
-                    "ALTER TABLE lessons ADD COLUMN agent_role TEXT DEFAULT 'default'",
-                ),
-            ],
-            "experiences": [
-                (
-                    "agent_role",
-                    "ALTER TABLE experiences ADD COLUMN agent_role TEXT DEFAULT 'default'",
-                ),
-            ],
-            "memories": [
-                (
-                    "agent_role",
-                    "ALTER TABLE memories ADD COLUMN agent_role TEXT DEFAULT 'default'",
-                ),
-                ("embedding", "ALTER TABLE memories ADD COLUMN embedding TEXT"),
-                (
-                    "reinforcement_count",
-                    "ALTER TABLE memories ADD COLUMN reinforcement_count INTEGER NOT NULL DEFAULT 0",
-                ),
-                (
-                    "success_count",
-                    "ALTER TABLE memories ADD COLUMN success_count INTEGER NOT NULL DEFAULT 0",
-                ),
-            ],
-        }
-        for table, cols in migrations.items():
-            cursor = await conn.execute(f"PRAGMA table_info({table})")
-            existing = {row[1] for row in await cursor.fetchall()}
-            for column, ddl in cols:
-                if column not in existing:
-                    await conn.execute(ddl)
-
-    async def _create_indexes(self, conn: aiosqlite.Connection) -> None:
-        for ddl in (
-            "CREATE INDEX IF NOT EXISTS idx_exp_created ON experiences(created_at DESC)",
-            "CREATE INDEX IF NOT EXISTS idx_lessons_exp ON lessons(experience_id)",
-            "CREATE INDEX IF NOT EXISTS idx_mem_role_type ON memories(agent_role, type)",
-            "CREATE INDEX IF NOT EXISTS idx_mem_rank ON memories(importance DESC, confidence DESC)",
-            "CREATE INDEX IF NOT EXISTS idx_mem_expires ON memories(expires_at)",
-        ):
-            await conn.execute(ddl)
+                await self._migrator.migrate(self._require_conn())
+            except StorageError:
+                raise
+            except Exception as e:
+                raise StorageError(
+                    "Failed to initialize SQLite database.",
+                    operation="initialize",
+                    table="schema",
+                ) from e
 
     async def close(self) -> None:
-        """Closes the underlying connection."""
-        if self._conn is not None:
-            await self._conn.close()
+        """Close once, awaiting the same completion for every concurrent caller."""
+        close_task = await self._coordinate_close()
+        if close_task is not None:
+            await asyncio.shield(close_task)
+
+    async def _coordinate_close(self) -> Optional[asyncio.Task[None]]:
+        async with self._lifecycle_lock:
+            if self._lifecycle_state == "closed":
+                return None
+            if self._close_task is None:
+                self._lifecycle_state = "closing"
+                self._close_task = asyncio.create_task(self._close_when_drained())
+            return self._close_task
+
+    async def _close_when_drained(self) -> None:
+        try:
+            await self._operations_drained.wait()
+            async with self._write_lock:
+                conn = self._conn
+                if conn is not None:
+                    await conn.close()
+        except BaseException:
+            async with self._lifecycle_lock:
+                if self._close_task is asyncio.current_task():
+                    self._lifecycle_state = "open"
+                    self._close_task = None
+            raise
+
+        async with self._lifecycle_lock:
             self._conn = None
+            self._lifecycle_state = "closed"
 
     # --- Experience Methods ---
 
     async def save_experience(self, experience: ExperienceRecord) -> None:
-        conn = self._require_conn()
-        try:
-            async with self._write_lock:
+        async with self._operation():
+            encoded = self._serializer.encode_experience(experience)
+            async with self._transactions.write(
+                operation="save",
+                table="experiences",
+                record_ids=(encoded.id,),
+            ) as conn:
                 await conn.execute(
                     """
                     INSERT INTO experiences (id, task, action, result, agent_role, context, created_at)
                     VALUES (?, ?, ?, ?, ?, ?, ?)
                     """,
-                    (
-                        str(experience.id),
-                        experience.task,
-                        experience.action,
-                        experience.result,
-                        experience.agent_role,
-                        json.dumps(experience.context) if experience.context else None,
-                        experience.created_at.isoformat(),
-                    ),
+                    encoded.values(),
                 )
-                await conn.commit()
-        except Exception as e:
-            raise StorageError(f"Failed to save experience: {e}")
 
     async def get_experience(self, experience_id: UUID) -> Optional[ExperienceRecord]:
-        conn = self._require_conn()
-        try:
-            cursor = await conn.execute(
-                "SELECT id, task, action, result, agent_role, context, created_at "
-                "FROM experiences WHERE id = ?",
-                (str(experience_id),),
-            )
-            row = await cursor.fetchone()
-            return self._row_to_experience(row) if row else None
-        except Exception as e:
-            raise StorageError(f"Failed to retrieve experience: {e}")
+        async with self._operation():
+            conn = self._require_conn()
+            try:
+                cursor = await conn.execute(
+                    "SELECT id, task, action, result, agent_role, context, created_at "
+                    "FROM experiences WHERE id = ?",
+                    (str(experience_id),),
+                )
+                row = await cursor.fetchone()
+                return self._serializer.decode_experience(row) if row else None
+            except StorageError:
+                raise
+            except Exception as e:
+                raise StorageError(
+                    "Failed to retrieve experience.",
+                    operation="retrieve",
+                    table="experiences",
+                    record_ids=(experience_id,),
+                ) from e
 
     async def get_recent_experiences(self, limit: int = 50) -> List[ExperienceRecord]:
-        conn = self._require_conn()
-        try:
-            cursor = await conn.execute(
-                "SELECT id, task, action, result, agent_role, context, created_at "
-                "FROM experiences ORDER BY created_at DESC LIMIT ?",
-                (limit,),
-            )
-            rows = await cursor.fetchall()
-            return [self._row_to_experience(row) for row in rows]
-        except Exception as e:
-            raise StorageError(f"Failed to retrieve recent experiences: {e}")
-
-    @staticmethod
-    def _row_to_experience(row) -> ExperienceRecord:
-        return ExperienceRecord(
-            id=UUID(row[0]),
-            task=row[1],
-            action=row[2],
-            result=row[3],
-            agent_role=row[4],
-            context=json.loads(row[5]) if row[5] else {},
-            created_at=datetime.fromisoformat(row[6]),
-        )
+        async with self._operation():
+            conn = self._require_conn()
+            try:
+                cursor = await conn.execute(
+                    "SELECT id, task, action, result, agent_role, context, created_at "
+                    "FROM experiences ORDER BY created_at DESC LIMIT ?",
+                    (limit,),
+                )
+                rows = await cursor.fetchall()
+                return [self._serializer.decode_experience(row) for row in rows]
+            except StorageError:
+                raise
+            except Exception as e:
+                raise StorageError(
+                    "Failed to retrieve recent experiences.",
+                    operation="retrieve",
+                    table="experiences",
+                ) from e
 
     # --- Lesson Methods ---
 
     async def save_lesson(self, lesson: Lesson) -> None:
-        conn = self._require_conn()
-        try:
-            async with self._write_lock:
-                await self._insert_lesson(conn, lesson)
-                await conn.commit()
-        except Exception as e:
-            raise StorageError(f"Failed to save lesson: {e}")
+        async with self._operation():
+            encoded = self._serializer.encode_lesson(lesson)
+            async with self._transactions.write(
+                operation="save",
+                table="lessons",
+                record_ids=(encoded.id,),
+            ) as conn:
+                await self._insert_lesson(conn, encoded)
 
     async def save_lesson_and_memory(self, lesson: Lesson, memory: Memory) -> None:
         """Persist a lesson and its derived memory atomically in one transaction."""
-        conn = self._require_conn()
-        try:
-            async with self._write_lock:
-                await self._insert_lesson(conn, lesson)
-                await self._upsert_memory(conn, memory)
-                await conn.commit()
-        except Exception as e:
-            try:
-                await conn.rollback()
-            except Exception:
-                pass
-            raise StorageError(f"Failed to save lesson and memory: {e}")
+        async with self._operation():
+            encoded_lesson = self._serializer.encode_lesson(lesson)
+            encoded_memory = self._serializer.encode_memory(memory)
+            async with self._transactions.write(
+                operation="save",
+                table="lessons,memories",
+                record_ids=(encoded_lesson.id, encoded_memory.id),
+            ) as conn:
+                await self._insert_lesson(conn, encoded_lesson)
+                await self._upsert_memory(conn, encoded_memory)
 
     @staticmethod
-    async def _insert_lesson(conn: aiosqlite.Connection, lesson: Lesson) -> None:
+    async def _insert_lesson(conn: aiosqlite.Connection, lesson: EncodedLesson) -> None:
         await conn.execute(
             """
             INSERT INTO lessons (id, experience_id, content, agent_role, root_cause, confidence, created_at)
             VALUES (?, ?, ?, ?, ?, ?, ?)
             """,
-            (
-                str(lesson.id),
-                str(lesson.experience_id),
-                lesson.content,
-                lesson.agent_role,
-                lesson.root_cause,
-                lesson.confidence,
-                lesson.created_at.isoformat(),
-            ),
+            lesson.values(),
         )
 
     # --- Memory Methods ---
 
     async def save_memory(self, memory: Memory) -> None:
-        conn = self._require_conn()
-        try:
-            async with self._write_lock:
-                await self._upsert_memory(conn, memory)
-                await conn.commit()
-        except Exception as e:
-            raise StorageError(f"Failed to save memory: {e}")
+        async with self._operation():
+            encoded = self._serializer.encode_memory(memory)
+            async with self._transactions.write(
+                operation="save",
+                table="memories",
+                record_ids=(encoded.id,),
+            ) as conn:
+                await self._upsert_memory(conn, encoded)
 
-    @staticmethod
-    async def _upsert_memory(conn: aiosqlite.Connection, memory: Memory) -> None:
+    async def _upsert_memory(
+        self,
+        conn: aiosqlite.Connection,
+        memory: EncodedMemory,
+    ) -> None:
         await conn.execute(
             """
             INSERT OR REPLACE INTO memories
             (id, content, type, agent_role, confidence, importance, source, metadata,
-             embedding, reinforcement_count, success_count, created_at, updated_at, expires_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+             embedding, reinforcement_count, success_count, created_at, updated_at,
+             expires_at, embedding_dimension)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
-            (
-                str(memory.id),
-                memory.content,
-                memory.type.value,
-                memory.agent_role,
-                memory.confidence,
-                memory.importance,
-                memory.source,
-                json.dumps(memory.metadata) if memory.metadata else None,
-                json.dumps(memory.embedding) if memory.embedding else None,
-                memory.reinforcement_count,
-                memory.success_count,
-                memory.created_at.isoformat(),
-                memory.updated_at.isoformat(),
-                memory.expires_at.isoformat() if memory.expires_at else None,
-            ),
+            (*memory.values(), memory.embedding_dimension),
         )
+        await self._vector_index.maintain_encoded_memory(conn, memory)
+
+    async def rebuild_vector_index(
+        self,
+        *,
+        batch_size: int = 256,
+        force: bool = False,
+    ) -> VectorIndexRebuildResult:
+        """Resume rebuilding derived vector bands from stored embeddings."""
+        async with self._operation():
+            return await self._vector_index.rebuild(
+                batch_size=batch_size,
+                force=force,
+            )
 
     async def get_memory(self, memory_id: UUID) -> Optional[Memory]:
-        conn = self._require_conn()
-        try:
-            cursor = await conn.execute(
-                "SELECT * FROM memories WHERE id = ?", (str(memory_id),)
-            )
-            row = await cursor.fetchone()
-            return self._row_to_memory(row) if row else None
-        except Exception as e:
-            raise StorageError(f"Failed to retrieve memory: {e}")
+        async with self._operation():
+            conn = self._require_conn()
+            try:
+                cursor = await conn.execute(
+                    f"SELECT {_MEMORY_COLUMNS} FROM memories WHERE id = ?",
+                    (str(memory_id),),
+                )
+                row = await cursor.fetchone()
+                return self._serializer.decode_memory(row) if row else None
+            except StorageError:
+                raise
+            except Exception as e:
+                raise StorageError(
+                    "Failed to retrieve memory.",
+                    operation="retrieve",
+                    table="memories",
+                    record_ids=(memory_id,),
+                ) from e
 
     async def search_memories(
         self,
@@ -323,60 +331,37 @@ class SQLiteStore:
         ranked by cosine similarity blended with importance (semantic search).
         Otherwise falls back to keyword (LIKE) matching.
         """
-        conn = self._require_conn()
-        try:
-            sql = "SELECT * FROM memories WHERE 1=1"
-            params: list = []
+        retrieval_query = RetrievalQuery(
+            text=query,
+            memory_type=memory_type,
+            agent_role=agent_role,
+            limit=limit,
+            query_embedding=(
+                tuple(query_embedding) if query_embedding is not None else None
+            ),
+            include_expired=include_expired,
+        )
+        if retrieval_query.limit == 0:
+            return []
 
-            if not include_expired:
-                sql += " AND (expires_at IS NULL OR expires_at > ?)"
-                params.append(datetime.now(timezone.utc).isoformat())
+        async with self._operation():
+            return await self._search_memories(retrieval_query)
 
-            if memory_type:
-                sql += " AND type = ?"
-                params.append(memory_type.value)
-
-            if agent_role:
-                # Allow the specific role or the globally-shared STRATEGY memories.
-                sql += " AND (agent_role = ? OR type = ?)"
-                params.extend([agent_role, MemoryType.STRATEGY.value])
-
-            if query_embedding:
-                # Semantic path: pull a candidate pool, rank in Python.
-                cursor = await conn.execute(sql, tuple(params))
-                rows = await cursor.fetchall()
-                memories = [self._row_to_memory(row) for row in rows]
-                return self._rank_by_similarity(memories, query_embedding, limit)
-
-            # Keyword path.
-            if query:
-                sql += " AND content LIKE ?"
-                params.append(f"%{query}%")
-
-            sql += " ORDER BY importance DESC, confidence DESC LIMIT ?"
-            params.append(limit)
-
-            cursor = await conn.execute(sql, tuple(params))
-            rows = await cursor.fetchall()
-            return [self._row_to_memory(row) for row in rows]
-        except Exception as e:
-            raise StorageError(f"Failed to search memories: {e}")
+    async def _search_memories(self, query: RetrievalQuery) -> List[Memory]:
+        """Delegate private callers and public search to the retrieval engine."""
+        return await self._retrieval_engine.search(query)
 
     @staticmethod
     def _rank_by_similarity(
         memories: List[Memory], query_embedding: List[float], limit: int
     ) -> List[Memory]:
-        scored = []
-        for mem in memories:
-            if mem.embedding:
-                sim = cosine_similarity(query_embedding, mem.embedding)
-            else:
-                sim = 0.0
-            # Blend semantic relevance with the memory's own importance.
-            score = 0.75 * sim + 0.25 * mem.importance
-            scored.append((score, mem))
-        scored.sort(key=lambda pair: pair[0], reverse=True)
-        return [mem for _, mem in scored[:limit]]
+        """Compatibility helper for deterministic semantic reranking."""
+        query = RetrievalQuery(
+            limit=limit,
+            query_embedding=tuple(query_embedding),
+            include_expired=True,
+        )
+        return rank_memories(memories, query)
 
     async def find_similar_memory(
         self,
@@ -386,20 +371,26 @@ class SQLiteStore:
         threshold: float = 0.95,
     ) -> Optional[Memory]:
         """Return an existing near-duplicate memory above ``threshold``, if any."""
-        if not embedding:
+        async with self._operation():
+            if not embedding:
+                return None
+            candidates = await self._search_memories(
+                RetrievalQuery(
+                    memory_type=memory_type,
+                    agent_role=agent_role,
+                    query_embedding=tuple(embedding),
+                    limit=1,
+                )
+            )
+            if not candidates:
+                return None
+            best = candidates[0]
+            if (
+                best.embedding
+                and cosine_similarity(embedding, best.embedding) >= threshold
+            ):
+                return best
             return None
-        candidates = await self.search_memories(
-            memory_type=memory_type,
-            agent_role=agent_role,
-            query_embedding=embedding,
-            limit=1,
-        )
-        if not candidates:
-            return None
-        best = candidates[0]
-        if best.embedding and cosine_similarity(embedding, best.embedding) >= threshold:
-            return best
-        return None
 
     async def update_memory_feedback(
         self, memory_id: UUID, success: bool, alpha: float = 0.2
@@ -407,64 +398,70 @@ class SQLiteStore:
         """
         Reinforce or weaken a memory based on a real outcome. Confidence moves
         toward 1.0 on success and 0.0 on failure via an exponential moving
-        average, and reinforcement counters are incremented.
+        average, and reinforcement counters are incremented atomically.
         """
-        conn = self._require_conn()
-        memory = await self.get_memory(memory_id)
-        if memory is None:
-            return None
+        async with self._operation():
+            target = 1.0 if success else 0.0
+            feedback_sql = """
+                UPDATE memories
+                SET reinforcement_count = reinforcement_count + 1,
+                    success_count = success_count + ?,
+                    confidence = MIN(
+                        1.0,
+                        MAX(
+                            0.0,
+                            ROUND(confidence + ? * (? - confidence), 4)
+                        )
+                    ),
+                    updated_at = ?
+                WHERE id = ?
+            """
+            parameters = (
+                int(bool(success)),
+                alpha,
+                target,
+                datetime.now(timezone.utc).isoformat(),
+                str(memory_id),
+            )
 
-        target = 1.0 if success else 0.0
-        memory.confidence = round(
-            min(1.0, max(0.0, memory.confidence + alpha * (target - memory.confidence))),
-            4,
-        )
-        memory.reinforcement_count += 1
-        if success:
-            memory.success_count += 1
-        memory.updated_at = datetime.now(timezone.utc)
+            async with self._transactions.write(
+                operation="update_feedback",
+                table="memories",
+                record_ids=(str(memory_id),),
+            ) as conn:
+                try:
+                    cursor = await conn.execute(
+                        f"{feedback_sql} RETURNING {_MEMORY_COLUMNS}",
+                        parameters,
+                    )
+                    row = await cursor.fetchone()
+                except aiosqlite.OperationalError as error:
+                    if "returning" not in str(error).casefold():
+                        raise
+                    cursor = await conn.execute(feedback_sql, parameters)
+                    if cursor.rowcount == 0:
+                        row = None
+                    else:
+                        cursor = await conn.execute(
+                            f"SELECT {_MEMORY_COLUMNS} FROM memories WHERE id = ?",
+                            (str(memory_id),),
+                        )
+                        row = await cursor.fetchone()
 
-        try:
-            async with self._write_lock:
-                await self._upsert_memory(conn, memory)
-                await conn.commit()
-        except Exception as e:
-            raise StorageError(f"Failed to update memory feedback: {e}")
-        return memory
+                memory = self._serializer.decode_memory(row) if row else None
+            return memory
 
     async def prune_expired(self) -> int:
         """Delete expired memories. Returns the number removed."""
-        conn = self._require_conn()
-        try:
-            async with self._write_lock:
+        async with self._operation():
+            async with self._transactions.write(
+                operation="prune", table="memories"
+            ) as conn:
                 cursor = await conn.execute(
                     "DELETE FROM memories WHERE expires_at IS NOT NULL AND expires_at <= ?",
                     (datetime.now(timezone.utc).isoformat(),),
                 )
-                await conn.commit()
                 removed = cursor.rowcount or 0
             if removed:
                 logger.info(f"Pruned {removed} expired memories.")
             return removed
-        except Exception as e:
-            raise StorageError(f"Failed to prune expired memories: {e}")
-
-    @staticmethod
-    def _row_to_memory(row) -> Memory:
-        # Column order matches CREATE TABLE memories.
-        return Memory(
-            id=UUID(row[0]),
-            content=row[1],
-            type=MemoryType(row[2]),
-            agent_role=row[3],
-            confidence=row[4],
-            importance=row[5],
-            source=row[6],
-            metadata=json.loads(row[7]) if row[7] else {},
-            embedding=json.loads(row[8]) if row[8] else None,
-            reinforcement_count=row[9] or 0,
-            success_count=row[10] or 0,
-            created_at=datetime.fromisoformat(row[11]),
-            updated_at=datetime.fromisoformat(row[12]),
-            expires_at=datetime.fromisoformat(row[13]) if row[13] else None,
-        )
