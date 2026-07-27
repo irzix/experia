@@ -8,21 +8,48 @@ version = "0.7.0"
 description = "The open-source experience learning layer for AI agents."
 readme = "README.md"
 requires-python = ">=3.10"
-license = { text = "MIT" }
+license = "MIT"
+license-files = ["LICENSE"]
 authors = [
-    { name = "Experia AI Contributors", email = "hello@experia.ai" },
+    { name = "Experia AI Contributors" },
+]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Typing :: Typed",
 ]
 dependencies = [
     "pydantic>=2.0.0",
     "aiosqlite>=0.20.0",
 ]
 
+[project.urls]
+Homepage = "https://github.com/irzix/experia"
+Repository = "https://github.com/irzix/experia"
+Issues = "https://github.com/irzix/experia/issues"
+
 [project.optional-dependencies]
-dev = ["pytest>=8.0.0", "pytest-asyncio>=0.23.5", "ruff>=0.3.0", "aiosqlite>=0.20.0", "litellm>=1.0.0", "langchain-core>=0.3", "langgraph"]
+dev = [
+    "pytest>=8.0.0",
+    "pytest-asyncio>=0.23.5",
+    "hypothesis==6.163.0",
+    "ruff>=0.3.0",
+    "build==1.5.0",
+    "coverage[toml]==7.15.2",
+    "pytest-cov==7.1.0",
+    "PyYAML==6.0.2",
+    "tomli==2.2.1; python_version < '3.11'",
+    "aiosqlite>=0.20.0",
+    "litellm>=1.0.0",
+    "langchain-core>=0.3",
+    "langgraph",
+]
 llm = ["litellm>=1.0.0"]
 langchain = ["langchain-core>=0.3"]
 langgraph = ["langgraph"]
-openai = ["openai"]
 
 [tool.hatch.build.targets.wheel]
 packages = ["experia"]
@@ -37,8 +64,22 @@ ignore = ["E501"] # ignore line length because strings/queries can be long
 
 [tool.pytest.ini_options]
 minversion = "6.0"
-addopts = "-ra -q"
+addopts = "-ra -q --cov=experia --cov-branch --cov-report=term-missing --cov-report=json"
 asyncio_mode = "auto"
 testpaths = [
     "tests",
 ]
+
+[tool.coverage.run]
+branch = true
+relative_files = true
+source = ["experia"]
+
+[tool.coverage.report]
+show_missing = true
+skip_empty = true
+
+[tool.coverage.json]
+# Branches are collected for visibility; the granular gate enforces line coverage only.
+output = ".coverage.granular.json"
+pretty_print = true
