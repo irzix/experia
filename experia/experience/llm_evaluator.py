@@ -3,10 +3,12 @@ from typing import Optional
 
 from pydantic import BaseModel, Field
 
+from experia.core.dependencies import require_optional_dependency
 from experia.core.exceptions import EvaluationError
 from experia.core.interfaces import Evaluator
 from experia.core.logging import logger
 from experia.experience.models import ExperienceRecord, Lesson
+from experia.security.protection import DataProtectionLayer
 
 try:
     import litellm
@@ -28,12 +30,21 @@ class LLMEvaluator(Evaluator):
     Requires litellm and a configured API key for the chosen model.
     """
 
-    def __init__(self, model: str = "gpt-4o"):
-        if not litellm:
-            raise EvaluationError(
-                "litellm is not installed. Please install experia[llm] or litellm to use the LLMEvaluator."
-            )
+    _experia_protects_external = True
+
+    def __init__(
+        self,
+        model: str = "gpt-4o",
+        *,
+        data_protection: DataProtectionLayer | None = None,
+    ):
+        require_optional_dependency(
+            litellm is not None,
+            feature="LLMEvaluator",
+            extra="experia[llm]",
+        )
         self.model = model
+        self._data_protection = data_protection or DataProtectionLayer()
         self.system_prompt = (
             "You are an expert cognitive evaluator for an AI agent. "
             "Analyze the given agent's action and its result.\n"
@@ -43,12 +54,34 @@ class LLMEvaluator(Evaluator):
             '{"lesson": "string", "root_cause": "string", "confidence": float}'
         )
 
+    def _set_data_protection(self, data_protection: DataProtectionLayer) -> None:
+        self._data_protection = data_protection
+
     async def evaluate(self, experience: ExperienceRecord) -> Optional[Lesson]:
+        require_optional_dependency(
+            litellm is not None,
+            feature="LLMEvaluator",
+            extra="experia[llm]",
+        )
+        fields, metadata = self._data_protection.protect_sink(
+            {
+                "task": experience.task,
+                "action": experience.action,
+                "result": experience.result,
+                "context": experience.context,
+            },
+            {
+                "feature": "llm_evaluator",
+                "operation": "evaluation",
+                "experience_id": str(experience.id),
+                "model": self.model,
+            },
+        )
         user_prompt = (
-            f"Task: {experience.task}\n"
-            f"Action Taken: {experience.action}\n"
-            f"Result/Outcome: {experience.result}\n"
-            f"Active Context: {json.dumps(experience.context)}\n"
+            f"Task: {fields['task']}\n"
+            f"Action Taken: {fields['action']}\n"
+            f"Result/Outcome: {fields['result']}\n"
+            f"Active Context: {json.dumps(fields['context'], allow_nan=False)}\n"
         )
 
         try:
@@ -65,13 +98,17 @@ class LLMEvaluator(Evaluator):
             raw_content = response.choices[0].message.content
             if not raw_content:
                 logger.warning(
-                    f"LLM returned empty content for experience {experience.id}"
+                    "LLM evaluator returned empty content.",
+                    extra={"experia_metadata": metadata},
                 )
                 return None
 
             parsed = EvaluatorResponseSchema.model_validate_json(raw_content)
 
-            logger.info(f"LLM successfully evaluated experience {experience.id}")
+            logger.info(
+                "LLM evaluator completed successfully.",
+                extra={"experia_metadata": metadata},
+            )
             return Lesson(
                 experience_id=experience.id,
                 content=parsed.lesson,
@@ -79,8 +116,9 @@ class LLMEvaluator(Evaluator):
                 confidence=parsed.confidence,
             )
 
-        except Exception as e:
+        except Exception as error:
             logger.error(
-                f"LLMEvaluator failed to evaluate experience {experience.id}: {e}"
+                "LLM evaluator failed.",
+                extra={"experia_metadata": metadata},
             )
-            raise EvaluationError(f"LLM evaluation failed: {e}")
+            raise EvaluationError("LLM evaluation failed.") from error

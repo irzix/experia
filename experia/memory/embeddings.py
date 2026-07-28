@@ -10,8 +10,10 @@ retrieval ranks candidates by cosine similarity blended with importance.
 import math
 from typing import List, Optional, Protocol, runtime_checkable
 
+from experia.core.dependencies import require_optional_dependency
 from experia.core.exceptions import EvaluationError
 from experia.core.logging import logger
+from experia.security.protection import DataProtectionLayer
 
 try:
     import litellm
@@ -35,24 +37,62 @@ class LiteLLMEmbedder(Embedder):
     API key for the chosen model.
     """
 
-    def __init__(self, model: str = "text-embedding-3-small"):
-        if not litellm:
-            raise EvaluationError(
-                "litellm is not installed. Install experia[llm] to use LiteLLMEmbedder."
-            )
+    _experia_protects_external = True
+
+    def __init__(
+        self,
+        model: str = "text-embedding-3-small",
+        *,
+        data_protection: DataProtectionLayer | None = None,
+    ):
+        require_optional_dependency(
+            litellm is not None,
+            feature="LiteLLMEmbedder",
+            extra="experia[llm]",
+        )
         self.model = model
+        self._data_protection = data_protection or DataProtectionLayer()
+
+    def _set_data_protection(self, data_protection: DataProtectionLayer) -> None:
+        self._data_protection = data_protection
 
     async def embed(self, texts: List[str]) -> List[List[float]]:
+        require_optional_dependency(
+            litellm is not None,
+            feature="LiteLLMEmbedder",
+            extra="experia[llm]",
+        )
         if not texts:
             return []
+
+        fields, metadata = self._data_protection.protect_sink(
+            {"texts": texts},
+            {
+                "feature": "litellm_embedder",
+                "operation": "embedding",
+                "model": self.model,
+                "text_count": len(texts),
+            },
+        )
         try:
-            response = await litellm.aembedding(model=self.model, input=texts)
+            response = await litellm.aembedding(
+                model=self.model,
+                input=fields["texts"],
+            )
             # litellm normalises to an OpenAI-style response object/dict.
             data = response["data"] if isinstance(response, dict) else response.data
-            return [item["embedding"] for item in data]
-        except Exception as e:
-            logger.error(f"LiteLLMEmbedder failed to embed {len(texts)} text(s): {e}")
-            raise EvaluationError(f"Embedding failed: {e}")
+            vectors = [item["embedding"] for item in data]
+            logger.debug(
+                "External embedding completed successfully.",
+                extra={"experia_metadata": metadata},
+            )
+            return vectors
+        except Exception as error:
+            logger.error(
+                "External embedding failed.",
+                extra={"experia_metadata": metadata},
+            )
+            raise EvaluationError("Embedding failed.") from error
 
     async def embed_one(self, text: str) -> List[float]:
         vectors = await self.embed([text])

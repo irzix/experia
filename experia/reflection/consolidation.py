@@ -1,9 +1,11 @@
 from typing import Optional
 
+from experia.core.dependencies import require_optional_dependency
 from experia.core.exceptions import EvaluationError
 from experia.core.interfaces import MemoryStore
 from experia.core.logging import logger
 from experia.memory.models import Memory, MemoryType
+from experia.security.protection import DataProtectionLayer
 
 try:
     import litellm
@@ -18,9 +20,18 @@ class ReflectionEngine:
     it is designed to be developer-controlled (not automatically executed in the core runtime).
     """
 
-    def __init__(self, store: MemoryStore, model: str = "gpt-4o"):
+    _experia_protects_external = True
+
+    def __init__(
+        self,
+        store: MemoryStore,
+        model: str = "gpt-4o",
+        *,
+        data_protection: DataProtectionLayer | None = None,
+    ):
         self.store = store
         self.model = model
+        self._data_protection = data_protection or DataProtectionLayer()
         self.system_prompt = (
             "You are a strategic Reflection Engine for an AI agent. "
             "You will be given a batch of recent experiences and lessons the agent learned. "
@@ -31,31 +42,50 @@ class ReflectionEngine:
             "Return ONLY the strategy string, or 'NONE'."
         )
 
+    def _set_data_protection(self, data_protection: DataProtectionLayer) -> None:
+        self._data_protection = data_protection
+
     async def reflect(self, batch_size: int = 50) -> Optional[Memory]:
-        """
-        Retrieves the most recent experiences, analyzes them to find patterns,
-        and generates a high-level STRATEGY memory.
-        """
-        if not litellm:
-            raise EvaluationError(
-                "litellm is not installed. Please install experia[llm] or litellm to use the ReflectionEngine."
-            )
+        """Analyze recent experiences and create a high-level STRATEGY memory."""
+        require_optional_dependency(
+            litellm is not None,
+            feature="ReflectionEngine",
+            extra="experia[llm]",
+        )
 
-        logger.info(f"Starting reflection over the last {batch_size} experiences...")
         recent_experiences = await self.store.get_recent_experiences(limit=batch_size)
-
         if not recent_experiences:
             logger.info("No recent experiences found for reflection.")
             return None
 
-        # Build prompt from experiences
-        experiences_text = ""
-        for i, exp in enumerate(recent_experiences):
-            experiences_text += f"\nExperience {i + 1}:\n"
-            experiences_text += (
-                f"Task: {exp.task}\nAction: {exp.action}\nResult: {exp.result}\n"
-            )
+        fields, metadata = self._data_protection.protect_sink(
+            {
+                "experiences": [
+                    {
+                        "task": experience.task,
+                        "action": experience.action,
+                        "result": experience.result,
+                    }
+                    for experience in recent_experiences
+                ]
+            },
+            {
+                "feature": "reflection_engine",
+                "operation": "reflection",
+                "batch_size": batch_size,
+                "experience_count": len(recent_experiences),
+                "model": self.model,
+            },
+        )
 
+        experiences_text = ""
+        for index, experience in enumerate(fields["experiences"]):
+            experiences_text += f"\nExperience {index + 1}:\n"
+            experiences_text += (
+                f"Task: {experience['task']}\n"
+                f"Action: {experience['action']}\n"
+                f"Result: {experience['result']}\n"
+            )
         user_prompt = f"Recent Experiences:\n{experiences_text}"
 
         try:
@@ -69,23 +99,30 @@ class ReflectionEngine:
             )
 
             strategy_text = response.choices[0].message.content.strip()
-
             if not strategy_text or strategy_text == "NONE":
-                logger.info("Reflection did not yield any cohesive strategy.")
+                logger.info(
+                    "Reflection did not yield a cohesive strategy.",
+                    extra={"experia_metadata": metadata},
+                )
                 return None
 
             strategy_memory = Memory(
                 content=strategy_text,
                 type=MemoryType.STRATEGY,
-                importance=1.0,  # Strategies are highly important
+                importance=1.0,
                 source="ReflectionEngine",
             )
 
             await self.store.save_memory(strategy_memory)
-            logger.info(f"Generated new STRATEGY: {strategy_text}")
-
+            logger.info(
+                "Generated a new reflection strategy.",
+                extra={"experia_metadata": metadata},
+            )
             return strategy_memory
 
-        except Exception as e:
-            logger.error(f"ReflectionEngine failed during reflection: {e}")
-            raise EvaluationError(f"Reflection failed: {e}")
+        except Exception as error:
+            logger.error(
+                "Reflection failed.",
+                extra={"experia_metadata": metadata},
+            )
+            raise EvaluationError("Reflection failed.") from error
