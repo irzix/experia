@@ -3,32 +3,222 @@ name: Publish to PyPI
 on:
   push:
     tags:
-      - 'v*.*.*'  # Trigger only when a version tag (e.g., v0.1.0) is pushed
+      - "v*.*.*" # Trigger only when a version tag (e.g., v0.1.0) is pushed
+
+# Least privilege by default; the publish job elevates only what it needs.
+permissions:
+  contents: read
 
 jobs:
-  pypi-publish:
-    name: Build and publish to PyPI
-    runs-on: ubuntu-latest
-    
-    # Required for OIDC Trusted Publishing
+  # Reuse the exact required Quality Gate. Its matrix builds the single wheel and
+  # sdist once, tests them, and uploads those tested bytes plus their manifest.
+  quality-gate:
+    name: Quality Gate
     permissions:
-      id-token: write 
       contents: read
-      
+    uses: ./.github/workflows/ci.yml
+
+  publish:
+    name: Verify and publish the tested artifacts
+    needs: quality-gate
+    runs-on: ubuntu-latest
+
+    # id-token: OIDC Trusted Publishing (no API token).
+    # attestations: signed source/tag/workflow build provenance.
+    permissions:
+      id-token: write
+      contents: read
+      attestations: write
+
+    env:
+      QUALITY_GATE_STATUS: ${{ needs.quality-gate.outputs.quality-gate-status }}
+      TESTED_ARTIFACT_NAME: ${{ needs.quality-gate.outputs.artifact-name }}
+      RELEASE_TAG: ${{ github.ref_name }}
+      SOURCE_REVISION: ${{ github.sha }}
+      WORKFLOW_RUN: ${{ github.run_id }}
+
     steps:
-      - name: Checkout code
+      - name: Require a passing reusable Quality Gate
+        run: |
+          if [[ "${QUALITY_GATE_STATUS}" != "passed" ]]; then
+            echo "FAIL quality-gate-dependency: observed quality-gate-status=${QUALITY_GATE_STATUS:-missing}" >&2
+            exit 1
+          fi
+          if [[ -z "${TESTED_ARTIFACT_NAME}" ]]; then
+            echo "FAIL quality-gate-dependency: observed tested-artifact-name=missing" >&2
+            exit 1
+          fi
+          echo "PASS quality-gate-dependency: observed quality-gate-status=passed, tested-artifact-name=${TESTED_ARTIFACT_NAME}"
+
+      - name: Check out source
         uses: actions/checkout@v4
-        
-      - name: Set up Python
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python 3.12
         uses: actions/setup-python@v5
         with:
-          python-version: '3.12'
-          
-      - name: Install build tools
-        run: python -m pip install --upgrade pip build
-        
-      - name: Build package
-        run: python -m build
-        
-      - name: Publish to PyPI
+          python-version: "3.12"
+
+      - name: Validate release tag, project version, and changelog identity
+        run: |
+          # Reproducible release date: the tagged commit's UTC calendar date.
+          # This ties identity to the immutable source revision rather than to a
+          # non-reproducible publish-time wall clock.
+          release_date="$(TZ=UTC0 git log -1 --format=%cd --date=format-local:%Y-%m-%d "${SOURCE_REVISION}")"
+          echo "Resolved reproducible release date from source revision: ${release_date}"
+          python scripts/release_identity.py "${RELEASE_TAG}" --release-date "${release_date}" || {
+            observed=$?
+            echo "FAIL release-identity: observed exit_code=${observed}, tag=${RELEASE_TAG}, release_date=${release_date}" >&2
+            exit "${observed}"
+          }
+
+      - name: Download the tested wheel and sdist from the Quality Gate
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ needs.quality-gate.outputs.artifact-name }}
+          path: dist/quality-gate
+
+      - name: Verify tested artifact count and SHA-256 identity without rebuilding
+        run: |
+          python - <<'PY'
+          import hashlib
+          import json
+          from pathlib import Path
+
+          from scripts.artifact_gate import ArtifactGateError, inspect_artifacts
+
+          directory = Path("dist/quality-gate")
+          manifest_path = directory / "artifact-manifest.json"
+          try:
+              manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+          except (OSError, json.JSONDecodeError) as error:
+              raise SystemExit(
+                  f"FAIL artifact-manifest: observed unreadable manifest: {error}"
+              ) from error
+
+          # inspect_artifacts requires exactly one wheel and one sdist and
+          # recomputes their SHA-256 over the downloaded bytes.
+          try:
+              observed = [record.as_dict() for record in inspect_artifacts(directory)]
+          except ArtifactGateError as error:
+              raise SystemExit(f"FAIL artifact-count: observed {error}") from error
+
+          expected = manifest.get("artifacts")
+          smoke_status = manifest.get("smoke", {}).get("status")
+          if observed != expected:
+              raise SystemExit(
+                  "FAIL artifact-identity: "
+                  f"observed artifacts={observed!r}, manifest={expected!r}"
+              )
+          if smoke_status != "passed":
+              raise SystemExit(
+                  "FAIL quality-gate-smoke: "
+                  f"observed matrix_smoke_status={smoke_status!r}"
+              )
+
+          # Independent recomputation of the downloaded bytes (defense in depth).
+          for record in expected:
+              artifact = directory / record["name"]
+              digest = hashlib.sha256(artifact.read_bytes()).hexdigest()
+              size = artifact.stat().st_size
+              if digest != record["sha256"] or size != record["size_bytes"]:
+                  raise SystemExit(
+                      "FAIL artifact-identity: "
+                      f"observed name={record['name']!r}, sha256={digest!r}, "
+                      f"size={size!r}; expected sha256={record['sha256']!r}, "
+                      f"size={record['size_bytes']!r}"
+                  )
+
+          print(
+              "PASS artifact-identity: observed "
+              + ", ".join(
+                  f"{record['name']} sha256={record['sha256']} size={record['size_bytes']}"
+                  for record in expected
+              )
+          )
+          PY
+
+      - name: Inspect release metadata, README, license, and wheel contents
+        run: |
+          python scripts/release_artifacts.py \
+            --artifact-dir dist/quality-gate \
+            --manifest dist/quality-gate/release-artifact-inspection.json || {
+              observed=$?
+              echo "FAIL release-artifact-metadata: observed exit_code=${observed}" >&2
+              exit "${observed}"
+            }
+
+      - name: Stage the exact tested bytes for publication
+        run: |
+          python - <<'PY'
+          import hashlib
+          import json
+          import shutil
+          from pathlib import Path
+
+          source = Path("dist/quality-gate")
+          target = Path("dist/publish")
+          target.mkdir(parents=True, exist_ok=True)
+
+          manifest = json.loads(
+              (source / "artifact-manifest.json").read_text(encoding="utf-8")
+          )
+          staged = []
+          for record in manifest["artifacts"]:
+              destination = target / record["name"]
+              shutil.copy2(source / record["name"], destination)
+              digest = hashlib.sha256(destination.read_bytes()).hexdigest()
+              if digest != record["sha256"]:
+                  raise SystemExit(
+                      "FAIL publish-bytes: "
+                      f"observed name={record['name']!r}, sha256={digest!r}; "
+                      f"expected sha256={record['sha256']!r}"
+                  )
+              staged.append(destination.name)
+
+          # Only the two tested distributions may reach PyPI; nothing else leaks.
+          present = sorted(path.name for path in target.iterdir())
+          if len(staged) != 2 or present != sorted(staged):
+              raise SystemExit(
+                  "FAIL publish-bytes: "
+                  f"observed staged={present!r}; expected exactly the two tested artifacts"
+              )
+          print(f"PASS publish-bytes: observed staged exact tested bytes={present!r}")
+          PY
+
+      - name: Record reproducible release provenance inputs
+        run: |
+          python - "${RUNNER_TEMP}/release-provenance-inputs.json" <<'PY'
+          import json
+          import os
+          import sys
+
+          record = {
+              "source_revision": os.environ["SOURCE_REVISION"],
+              "release_tag": os.environ["RELEASE_TAG"],
+              "workflow_run": os.environ["WORKFLOW_RUN"],
+              "repository": os.environ.get("GITHUB_REPOSITORY", ""),
+              "workflow_ref": os.environ.get("GITHUB_WORKFLOW_REF", ""),
+          }
+          required = ("source_revision", "release_tag", "workflow_run")
+          missing = sorted(name for name in required if not record[name])
+          if missing:
+              raise SystemExit(f"FAIL provenance-inputs: observed missing={missing!r}")
+          with open(sys.argv[1], "w", encoding="utf-8") as handle:
+              json.dump(record, handle, indent=2, sort_keys=True)
+          print(f"PASS provenance-inputs: observed {record}")
+          PY
+
+      - name: Attest source, tag, and workflow provenance for the published bytes
+        uses: actions/attest-build-provenance@v2
+        with:
+          subject-path: |
+            dist/publish/*.whl
+            dist/publish/*.tar.gz
+
+      - name: Publish the attested tested bytes to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: dist/publish
+          print-hash: true

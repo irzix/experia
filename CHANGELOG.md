@@ -15,10 +15,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - **SQLiteStore:** Reuses a single connection (WAL best-effort) with a write lock instead of reconnecting per operation, adds indexes on hot columns, and writes a lesson and its derived memory atomically in one transaction (`save_lesson_and_memory`). Added `get_memory`, `close`, and expiry-aware search.
+- **Package metadata:** Added the reachable repository project URLs, exact Python 3.10–3.12 classifiers, SPDX `MIT` expression, packaged license declaration, and shipped `py.typed` marker; removed the unimplemented `openai` extra and the unverified author email.
+- **Dependency change records:** Added a credential-free changelog gate that requires the affected extra plus exact old and new declarations whenever an existing optional dependency range changes. Python 3.10 uses the exactly pinned `tomli==2.2.1` development dependency for this check.
 - Top-level `experia` package now exports `Learner`, `SQLiteStore`, `SimpleHeuristicEvaluator`, `Embedder`, `LiteLLMEmbedder`, `Memory`, and `MemoryType`.
 
 ### Docs
 - README now has a **Project Status** section clarifying which backends are implemented versus planned (Postgres/pgvector, Mem0, Zep, distributed mode).
+- Synchronized the canonical public API snapshot and generated API Reference constructor contracts with installed 0.7.0 behavior, including required `Learner.evaluator`, lifecycle methods, and the keyword-only embedding failure policy; added an offline asserted quickstart with linked automated evidence.
 
 ## [0.2.1] - 2026-07-24
 
