@@ -1,0 +1,445 @@
+{
+  "default_without_sanitizer": "pass-through",
+  "features": [
+    {
+      "credential_category": "implementation-dependent",
+      "credential_details": "The injected Embedder decides whether it needs an API key, cloud identity, another credential, or no credential.",
+      "id": "external_embedder",
+      "metadata_emission": "not-emitted",
+      "metadata_fields": [
+        {
+          "path": "feature",
+          "protection_path": "feature",
+          "source": "Experia feature identifier prepared with the protected request",
+          "with_sanitizer": "sanitized",
+          "without_sanitizer": "pass-through"
+        },
+        {
+          "path": "operation",
+          "protection_path": "operation",
+          "source": "Experia operation identifier prepared with the protected request",
+          "with_sanitizer": "sanitized",
+          "without_sanitizer": "pass-through"
+        },
+        {
+          "path": "text_count",
+          "protection_path": "text_count",
+          "source": "Experia-computed number of submitted texts",
+          "with_sanitizer": "sanitized",
+          "without_sanitizer": "pass-through"
+        }
+      ],
+      "network_details": "The injected Embedder may run locally or contact an implementation-selected service; Experia imposes no endpoint.",
+      "network_requirement": "implementation-dependent",
+      "request_fields": [
+        {
+          "path": "text",
+          "protection_path": "text",
+          "source": "Caller-derived text passed to Embedder.embed_one",
+          "with_sanitizer": "sanitized",
+          "without_sanitizer": "pass-through"
+        }
+      ],
+      "service": "User-provided Embedder implementation",
+      "sink": "experia.core.learner.Learner._call_embedder",
+      "title": "User-provided embedder"
+    },
+    {
+      "credential_category": "provider-dependent-api-credential",
+      "credential_details": "The selected LiteLLM provider may require an API key or cloud identity; a local provider may require no credential.",
+      "id": "litellm_embedder",
+      "metadata_emission": "logging",
+      "metadata_fields": [
+        {
+          "path": "feature",
+          "protection_path": "feature",
+          "source": "Experia feature identifier",
+          "with_sanitizer": "sanitized",
+          "without_sanitizer": "pass-through"
+        },
+        {
+          "path": "model",
+          "protection_path": "model",
+          "source": "Configured model identifier",
+          "with_sanitizer": "sanitized",
+          "without_sanitizer": "pass-through"
+        },
+        {
+          "path": "operation",
+          "protection_path": "operation",
+          "source": "Experia operation identifier",
+          "with_sanitizer": "sanitized",
+          "without_sanitizer": "pass-through"
+        },
+        {
+          "path": "text_count",
+          "protection_path": "text_count",
+          "source": "Experia-computed number of submitted texts",
+          "with_sanitizer": "sanitized",
+          "without_sanitizer": "pass-through"
+        }
+      ],
+      "network_details": "LiteLLM may use a local provider or outbound network access to the endpoint selected by the configured model and provider.",
+      "network_requirement": "provider-dependent",
+      "request_fields": [
+        {
+          "path": "input.texts[]",
+          "protection_path": "texts[]",
+          "source": "Caller-derived text list submitted for embedding",
+          "with_sanitizer": "sanitized",
+          "without_sanitizer": "pass-through"
+        },
+        {
+          "path": "model",
+          "protection_path": null,
+          "source": "Configured LiteLLM embedding model identifier",
+          "with_sanitizer": "pass-through",
+          "without_sanitizer": "pass-through"
+        }
+      ],
+      "service": "Embedding provider selected through LiteLLM",
+      "sink": "experia.memory.embeddings.LiteLLMEmbedder.embed",
+      "title": "LiteLLM embedding"
+    },
+    {
+      "credential_category": "provider-dependent-api-credential",
+      "credential_details": "The selected LiteLLM provider may require an API key or cloud identity; a local provider may require no credential.",
+      "id": "llm_evaluator",
+      "metadata_emission": "logging",
+      "metadata_fields": [
+        {
+          "path": "experience_id",
+          "protection_path": "experience_id",
+          "source": "Experia-generated experience identifier",
+          "with_sanitizer": "sanitized",
+          "without_sanitizer": "pass-through"
+        },
+        {
+          "path": "feature",
+          "protection_path": "feature",
+          "source": "Experia feature identifier",
+          "with_sanitizer": "sanitized",
+          "without_sanitizer": "pass-through"
+        },
+        {
+          "path": "model",
+          "protection_path": "model",
+          "source": "Configured model identifier",
+          "with_sanitizer": "sanitized",
+          "without_sanitizer": "pass-through"
+        },
+        {
+          "path": "operation",
+          "protection_path": "operation",
+          "source": "Experia operation identifier",
+          "with_sanitizer": "sanitized",
+          "without_sanitizer": "pass-through"
+        }
+      ],
+      "network_details": "LiteLLM may use a local provider or outbound network access to the endpoint selected by the configured model and provider.",
+      "network_requirement": "provider-dependent",
+      "request_fields": [
+        {
+          "path": "messages.system.content",
+          "protection_path": null,
+          "source": "Experia-controlled evaluator instruction and response schema",
+          "with_sanitizer": "pass-through",
+          "without_sanitizer": "pass-through"
+        },
+        {
+          "path": "messages.system.role",
+          "protection_path": null,
+          "source": "Experia-controlled system role",
+          "with_sanitizer": "pass-through",
+          "without_sanitizer": "pass-through"
+        },
+        {
+          "path": "messages.user.content.action",
+          "protection_path": "action",
+          "source": "ExperienceRecord action",
+          "with_sanitizer": "sanitized",
+          "without_sanitizer": "pass-through"
+        },
+        {
+          "path": "messages.user.content.context",
+          "protection_path": "context",
+          "source": "Complete nested ExperienceRecord context",
+          "with_sanitizer": "sanitized",
+          "without_sanitizer": "pass-through"
+        },
+        {
+          "path": "messages.user.content.framing",
+          "protection_path": null,
+          "source": "Experia-controlled task, action, result, and context labels",
+          "with_sanitizer": "pass-through",
+          "without_sanitizer": "pass-through"
+        },
+        {
+          "path": "messages.user.content.result",
+          "protection_path": "result",
+          "source": "ExperienceRecord result",
+          "with_sanitizer": "sanitized",
+          "without_sanitizer": "pass-through"
+        },
+        {
+          "path": "messages.user.content.task",
+          "protection_path": "task",
+          "source": "ExperienceRecord task",
+          "with_sanitizer": "sanitized",
+          "without_sanitizer": "pass-through"
+        },
+        {
+          "path": "messages.user.role",
+          "protection_path": null,
+          "source": "Experia-controlled user role",
+          "with_sanitizer": "pass-through",
+          "without_sanitizer": "pass-through"
+        },
+        {
+          "path": "model",
+          "protection_path": null,
+          "source": "Configured LiteLLM completion model identifier",
+          "with_sanitizer": "pass-through",
+          "without_sanitizer": "pass-through"
+        },
+        {
+          "path": "response_format.type",
+          "protection_path": null,
+          "source": "Experia-controlled JSON response format selector",
+          "with_sanitizer": "pass-through",
+          "without_sanitizer": "pass-through"
+        },
+        {
+          "path": "temperature",
+          "protection_path": null,
+          "source": "Experia-controlled sampling temperature",
+          "with_sanitizer": "pass-through",
+          "without_sanitizer": "pass-through"
+        }
+      ],
+      "service": "Completion provider selected through LiteLLM",
+      "sink": "experia.experience.llm_evaluator.LLMEvaluator.evaluate",
+      "title": "LLM evaluation"
+    },
+    {
+      "credential_category": "provider-dependent-api-credential",
+      "credential_details": "The selected LiteLLM provider may require an API key or cloud identity; a local provider may require no credential.",
+      "id": "reflection_engine",
+      "metadata_emission": "logging",
+      "metadata_fields": [
+        {
+          "path": "batch_size",
+          "protection_path": "batch_size",
+          "source": "Caller-selected retrieval batch limit",
+          "with_sanitizer": "sanitized",
+          "without_sanitizer": "pass-through"
+        },
+        {
+          "path": "experience_count",
+          "protection_path": "experience_count",
+          "source": "Experia-computed number of transmitted experiences",
+          "with_sanitizer": "sanitized",
+          "without_sanitizer": "pass-through"
+        },
+        {
+          "path": "feature",
+          "protection_path": "feature",
+          "source": "Experia feature identifier",
+          "with_sanitizer": "sanitized",
+          "without_sanitizer": "pass-through"
+        },
+        {
+          "path": "model",
+          "protection_path": "model",
+          "source": "Configured model identifier",
+          "with_sanitizer": "sanitized",
+          "without_sanitizer": "pass-through"
+        },
+        {
+          "path": "operation",
+          "protection_path": "operation",
+          "source": "Experia operation identifier",
+          "with_sanitizer": "sanitized",
+          "without_sanitizer": "pass-through"
+        }
+      ],
+      "network_details": "LiteLLM may use a local provider or outbound network access to the endpoint selected by the configured model and provider.",
+      "network_requirement": "provider-dependent",
+      "request_fields": [
+        {
+          "path": "messages.system.content",
+          "protection_path": null,
+          "source": "Experia-controlled reflection instruction",
+          "with_sanitizer": "pass-through",
+          "without_sanitizer": "pass-through"
+        },
+        {
+          "path": "messages.system.role",
+          "protection_path": null,
+          "source": "Experia-controlled system role",
+          "with_sanitizer": "pass-through",
+          "without_sanitizer": "pass-through"
+        },
+        {
+          "path": "messages.user.content.experiences[].action",
+          "protection_path": "experiences[].action",
+          "source": "Action from each retrieved ExperienceRecord",
+          "with_sanitizer": "sanitized",
+          "without_sanitizer": "pass-through"
+        },
+        {
+          "path": "messages.user.content.experiences[].result",
+          "protection_path": "experiences[].result",
+          "source": "Result from each retrieved ExperienceRecord",
+          "with_sanitizer": "sanitized",
+          "without_sanitizer": "pass-through"
+        },
+        {
+          "path": "messages.user.content.experiences[].task",
+          "protection_path": "experiences[].task",
+          "source": "Task from each retrieved ExperienceRecord",
+          "with_sanitizer": "sanitized",
+          "without_sanitizer": "pass-through"
+        },
+        {
+          "path": "messages.user.content.framing",
+          "protection_path": null,
+          "source": "Experia-controlled batch and field labels",
+          "with_sanitizer": "pass-through",
+          "without_sanitizer": "pass-through"
+        },
+        {
+          "path": "messages.user.role",
+          "protection_path": null,
+          "source": "Experia-controlled user role",
+          "with_sanitizer": "pass-through",
+          "without_sanitizer": "pass-through"
+        },
+        {
+          "path": "model",
+          "protection_path": null,
+          "source": "Configured LiteLLM completion model identifier",
+          "with_sanitizer": "pass-through",
+          "without_sanitizer": "pass-through"
+        },
+        {
+          "path": "temperature",
+          "protection_path": null,
+          "source": "Experia-controlled sampling temperature",
+          "with_sanitizer": "pass-through",
+          "without_sanitizer": "pass-through"
+        }
+      ],
+      "service": "Completion provider selected through LiteLLM",
+      "sink": "experia.reflection.consolidation.ReflectionEngine.reflect",
+      "title": "Reflection"
+    },
+    {
+      "credential_category": "provider-dependent-api-credential",
+      "credential_details": "The selected LiteLLM provider may require an API key or cloud identity; a local provider may require no credential.",
+      "id": "rule_generator",
+      "metadata_emission": "logging",
+      "metadata_fields": [
+        {
+          "path": "experience_id",
+          "protection_path": "experience_id",
+          "source": "Identifier of the lesson source experience",
+          "with_sanitizer": "sanitized",
+          "without_sanitizer": "pass-through"
+        },
+        {
+          "path": "feature",
+          "protection_path": "feature",
+          "source": "Experia feature identifier",
+          "with_sanitizer": "sanitized",
+          "without_sanitizer": "pass-through"
+        },
+        {
+          "path": "lesson_id",
+          "protection_path": "lesson_id",
+          "source": "Experia-generated lesson identifier",
+          "with_sanitizer": "sanitized",
+          "without_sanitizer": "pass-through"
+        },
+        {
+          "path": "model",
+          "protection_path": "model",
+          "source": "Configured model identifier",
+          "with_sanitizer": "sanitized",
+          "without_sanitizer": "pass-through"
+        },
+        {
+          "path": "operation",
+          "protection_path": "operation",
+          "source": "Experia operation identifier",
+          "with_sanitizer": "sanitized",
+          "without_sanitizer": "pass-through"
+        }
+      ],
+      "network_details": "LiteLLM may use a local provider or outbound network access to the endpoint selected by the configured model and provider.",
+      "network_requirement": "provider-dependent",
+      "request_fields": [
+        {
+          "path": "messages.system.content",
+          "protection_path": null,
+          "source": "Experia-controlled rule-generation instruction",
+          "with_sanitizer": "pass-through",
+          "without_sanitizer": "pass-through"
+        },
+        {
+          "path": "messages.system.role",
+          "protection_path": null,
+          "source": "Experia-controlled system role",
+          "with_sanitizer": "pass-through",
+          "without_sanitizer": "pass-through"
+        },
+        {
+          "path": "messages.user.content.content",
+          "protection_path": "content",
+          "source": "Lesson content",
+          "with_sanitizer": "sanitized",
+          "without_sanitizer": "pass-through"
+        },
+        {
+          "path": "messages.user.content.framing",
+          "protection_path": null,
+          "source": "Experia-controlled lesson and root-cause labels",
+          "with_sanitizer": "pass-through",
+          "without_sanitizer": "pass-through"
+        },
+        {
+          "path": "messages.user.content.root_cause",
+          "protection_path": "root_cause",
+          "source": "Lesson root cause or the Experia fallback label",
+          "with_sanitizer": "sanitized",
+          "without_sanitizer": "pass-through"
+        },
+        {
+          "path": "messages.user.role",
+          "protection_path": null,
+          "source": "Experia-controlled user role",
+          "with_sanitizer": "pass-through",
+          "without_sanitizer": "pass-through"
+        },
+        {
+          "path": "model",
+          "protection_path": null,
+          "source": "Configured LiteLLM completion model identifier",
+          "with_sanitizer": "pass-through",
+          "without_sanitizer": "pass-through"
+        },
+        {
+          "path": "temperature",
+          "protection_path": null,
+          "source": "Experia-controlled sampling temperature",
+          "with_sanitizer": "pass-through",
+          "without_sanitizer": "pass-through"
+        }
+      ],
+      "service": "Completion provider selected through LiteLLM",
+      "sink": "experia.improvement.rules.RuleGenerator.consolidate_lesson",
+      "title": "Rule generation"
+    }
+  ],
+  "schema_version": 1
+}

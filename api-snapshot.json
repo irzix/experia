@@ -1,0 +1,5274 @@
+{
+  "exports": [
+    {
+      "async": false,
+      "deprecation": {
+        "is_deprecated": false,
+        "message": null,
+        "replacement": null,
+        "since": null
+      },
+      "kind": "exception",
+      "members": [],
+      "path": "experia.ConfigurationError",
+      "signature": {
+        "parameters": [
+          {
+            "annotation": "object",
+            "default": {
+              "kind": "variadic"
+            },
+            "kind": "var_positional",
+            "name": "args",
+            "required": false
+          },
+          {
+            "annotation": "str | None",
+            "default": {
+              "kind": "value",
+              "value": null
+            },
+            "kind": "keyword_only",
+            "name": "feature",
+            "required": false
+          },
+          {
+            "annotation": "str | None",
+            "default": {
+              "kind": "value",
+              "value": null
+            },
+            "kind": "keyword_only",
+            "name": "parameter",
+            "required": false
+          },
+          {
+            "annotation": "str | None",
+            "default": {
+              "kind": "value",
+              "value": null
+            },
+            "kind": "keyword_only",
+            "name": "extra",
+            "required": false
+          }
+        ],
+        "return": "None"
+      },
+      "target": "experia.core.exceptions.ConfigurationError"
+    },
+    {
+      "async": false,
+      "deprecation": {
+        "is_deprecated": false,
+        "message": null,
+        "replacement": null,
+        "since": null
+      },
+      "kind": "protocol",
+      "members": [
+        {
+          "async": true,
+          "deprecation": {
+            "is_deprecated": false,
+            "message": null,
+            "replacement": null,
+            "since": null
+          },
+          "kind": "method",
+          "name": "embed",
+          "signature": {
+            "parameters": [
+              {
+                "annotation": "list[str]",
+                "default": {
+                  "kind": "required"
+                },
+                "kind": "positional_or_keyword",
+                "name": "texts",
+                "required": true
+              }
+            ],
+            "return": "list[list[float]]"
+          }
+        },
+        {
+          "async": true,
+          "deprecation": {
+            "is_deprecated": false,
+            "message": null,
+            "replacement": null,
+            "since": null
+          },
+          "kind": "method",
+          "name": "embed_one",
+          "signature": {
+            "parameters": [
+              {
+                "annotation": "str",
+                "default": {
+                  "kind": "required"
+                },
+                "kind": "positional_or_keyword",
+                "name": "text",
+                "required": true
+              }
+            ],
+            "return": "list[float]"
+          }
+        }
+      ],
+      "path": "experia.Embedder",
+      "signature": {
+        "parameters": [
+          {
+            "annotation": null,
+            "default": {
+              "kind": "variadic"
+            },
+            "kind": "var_positional",
+            "name": "args",
+            "required": false
+          },
+          {
+            "annotation": null,
+            "default": {
+              "kind": "variadic"
+            },
+            "kind": "var_keyword",
+            "name": "kwargs",
+            "required": false
+          }
+        ],
+        "return": null
+      },
+      "target": "experia.memory.embeddings.Embedder"
+    },
+    {
+      "async": false,
+      "deprecation": {
+        "is_deprecated": false,
+        "message": null,
+        "replacement": null,
+        "since": null
+      },
+      "kind": "exception",
+      "members": [],
+      "path": "experia.EvaluationError",
+      "signature": null,
+      "target": "experia.core.exceptions.EvaluationError"
+    },
+    {
+      "async": false,
+      "deprecation": {
+        "is_deprecated": false,
+        "message": null,
+        "replacement": null,
+        "since": null
+      },
+      "kind": "exception",
+      "members": [],
+      "path": "experia.EvaluationFailure",
+      "signature": {
+        "parameters": [
+          {
+            "annotation": "str | None",
+            "default": {
+              "kind": "value",
+              "value": null
+            },
+            "kind": "positional_or_keyword",
+            "name": "message",
+            "required": false
+          },
+          {
+            "annotation": "uuid.UUID",
+            "default": {
+              "kind": "required"
+            },
+            "kind": "keyword_only",
+            "name": "job_id",
+            "required": true
+          },
+          {
+            "annotation": "str",
+            "default": {
+              "kind": "required"
+            },
+            "kind": "keyword_only",
+            "name": "operation",
+            "required": true
+          },
+          {
+            "annotation": "uuid.UUID | None",
+            "default": {
+              "kind": "value",
+              "value": null
+            },
+            "kind": "keyword_only",
+            "name": "experience_id",
+            "required": false
+          },
+          {
+            "annotation": "collections.abc.Iterable[experia.core.exceptions.FailureDetail]",
+            "default": {
+              "items": [],
+              "kind": "tuple"
+            },
+            "kind": "keyword_only",
+            "name": "failures",
+            "required": false
+          }
+        ],
+        "return": "None"
+      },
+      "target": "experia.core.exceptions.EvaluationFailure"
+    },
+    {
+      "async": false,
+      "deprecation": {
+        "is_deprecated": false,
+        "message": null,
+        "replacement": null,
+        "since": null
+      },
+      "kind": "exception",
+      "members": [],
+      "path": "experia.ExperiaError",
+      "signature": null,
+      "target": "experia.core.exceptions.ExperiaError"
+    },
+    {
+      "async": false,
+      "deprecation": {
+        "is_deprecated": false,
+        "message": null,
+        "replacement": null,
+        "since": null
+      },
+      "kind": "dataclass",
+      "members": [],
+      "path": "experia.FailureDetail",
+      "signature": {
+        "parameters": [
+          {
+            "annotation": "uuid.UUID",
+            "default": {
+              "kind": "required"
+            },
+            "kind": "positional_or_keyword",
+            "name": "job_id",
+            "required": true
+          },
+          {
+            "annotation": "str",
+            "default": {
+              "kind": "required"
+            },
+            "kind": "positional_or_keyword",
+            "name": "operation",
+            "required": true
+          },
+          {
+            "annotation": "uuid.UUID | None",
+            "default": {
+              "kind": "value",
+              "value": null
+            },
+            "kind": "positional_or_keyword",
+            "name": "experience_id",
+            "required": false
+          },
+          {
+            "annotation": "str",
+            "default": {
+              "kind": "value",
+              "value": "evaluation_failure"
+            },
+            "kind": "positional_or_keyword",
+            "name": "error_type",
+            "required": false
+          }
+        ],
+        "return": "None"
+      },
+      "target": "experia.core.exceptions.FailureDetail"
+    },
+    {
+      "async": false,
+      "deprecation": {
+        "is_deprecated": false,
+        "message": null,
+        "replacement": null,
+        "since": null
+      },
+      "kind": "class",
+      "members": [
+        {
+          "async": true,
+          "deprecation": {
+            "is_deprecated": false,
+            "message": null,
+            "replacement": null,
+            "since": null
+          },
+          "kind": "method",
+          "name": "aclose",
+          "signature": {
+            "parameters": [
+              {
+                "annotation": "experia.core.work.ShutdownPolicy | str",
+                "default": {
+                  "kind": "value",
+                  "value": "drain"
+                },
+                "kind": "positional_or_keyword",
+                "name": "policy",
+                "required": false
+              },
+              {
+                "annotation": "bool",
+                "default": {
+                  "kind": "value",
+                  "value": false
+                },
+                "kind": "keyword_only",
+                "name": "close_store",
+                "required": false
+              }
+            ],
+            "return": "None"
+          }
+        },
+        {
+          "async": true,
+          "deprecation": {
+            "is_deprecated": false,
+            "message": null,
+            "replacement": null,
+            "since": null
+          },
+          "kind": "method",
+          "name": "flush",
+          "signature": {
+            "parameters": [],
+            "return": "experia.core.work.FlushReport"
+          }
+        },
+        {
+          "async": true,
+          "deprecation": {
+            "is_deprecated": false,
+            "message": null,
+            "replacement": null,
+            "since": null
+          },
+          "kind": "method",
+          "name": "prune",
+          "signature": {
+            "parameters": [],
+            "return": "int"
+          }
+        },
+        {
+          "async": true,
+          "deprecation": {
+            "is_deprecated": false,
+            "message": null,
+            "replacement": null,
+            "since": null
+          },
+          "kind": "method",
+          "name": "record",
+          "signature": {
+            "parameters": [
+              {
+                "annotation": "str",
+                "default": {
+                  "kind": "required"
+                },
+                "kind": "positional_or_keyword",
+                "name": "task",
+                "required": true
+              },
+              {
+                "annotation": "str",
+                "default": {
+                  "kind": "required"
+                },
+                "kind": "positional_or_keyword",
+                "name": "action",
+                "required": true
+              },
+              {
+                "annotation": "str",
+                "default": {
+                  "kind": "required"
+                },
+                "kind": "positional_or_keyword",
+                "name": "result",
+                "required": true
+              },
+              {
+                "annotation": "dict[str, typing.Any] | None",
+                "default": {
+                  "kind": "value",
+                  "value": null
+                },
+                "kind": "positional_or_keyword",
+                "name": "context",
+                "required": false
+              }
+            ],
+            "return": "experia.experience.models.ExperienceRecord"
+          }
+        },
+        {
+          "async": true,
+          "deprecation": {
+            "is_deprecated": false,
+            "message": null,
+            "replacement": null,
+            "since": null
+          },
+          "kind": "method",
+          "name": "reflect",
+          "signature": {
+            "parameters": [
+              {
+                "annotation": "str",
+                "default": {
+                  "kind": "value",
+                  "value": "gpt-4o"
+                },
+                "kind": "positional_or_keyword",
+                "name": "model",
+                "required": false
+              },
+              {
+                "annotation": "int",
+                "default": {
+                  "kind": "value",
+                  "value": 50
+                },
+                "kind": "positional_or_keyword",
+                "name": "batch_size",
+                "required": false
+              }
+            ],
+            "return": "None"
+          }
+        },
+        {
+          "async": true,
+          "deprecation": {
+            "is_deprecated": false,
+            "message": null,
+            "replacement": null,
+            "since": null
+          },
+          "kind": "method",
+          "name": "reinforce",
+          "signature": {
+            "parameters": [
+              {
+                "annotation": "uuid.UUID",
+                "default": {
+                  "kind": "required"
+                },
+                "kind": "positional_or_keyword",
+                "name": "memory_id",
+                "required": true
+              },
+              {
+                "annotation": "bool",
+                "default": {
+                  "kind": "required"
+                },
+                "kind": "positional_or_keyword",
+                "name": "success",
+                "required": true
+              }
+            ],
+            "return": "experia.memory.models.Memory | None"
+          }
+        },
+        {
+          "async": true,
+          "deprecation": {
+            "is_deprecated": false,
+            "message": null,
+            "replacement": null,
+            "since": null
+          },
+          "kind": "method",
+          "name": "remember",
+          "signature": {
+            "parameters": [
+              {
+                "annotation": "str",
+                "default": {
+                  "kind": "required"
+                },
+                "kind": "positional_or_keyword",
+                "name": "content",
+                "required": true
+              },
+              {
+                "annotation": "experia.memory.models.MemoryType",
+                "default": {
+                  "kind": "value",
+                  "value": "fact"
+                },
+                "kind": "positional_or_keyword",
+                "name": "memory_type",
+                "required": false
+              }
+            ],
+            "return": "experia.memory.models.Memory"
+          }
+        },
+        {
+          "async": true,
+          "deprecation": {
+            "is_deprecated": false,
+            "message": null,
+            "replacement": null,
+            "since": null
+          },
+          "kind": "method",
+          "name": "retrieve_context",
+          "signature": {
+            "parameters": [
+              {
+                "annotation": "str",
+                "default": {
+                  "kind": "value",
+                  "value": ""
+                },
+                "kind": "positional_or_keyword",
+                "name": "query",
+                "required": false
+              },
+              {
+                "annotation": "int",
+                "default": {
+                  "kind": "value",
+                  "value": 5
+                },
+                "kind": "positional_or_keyword",
+                "name": "limit",
+                "required": false
+              }
+            ],
+            "return": "str"
+          }
+        },
+        {
+          "async": true,
+          "deprecation": {
+            "is_deprecated": false,
+            "message": null,
+            "replacement": null,
+            "since": null
+          },
+          "kind": "method",
+          "name": "shutdown",
+          "signature": {
+            "parameters": [
+              {
+                "annotation": "experia.core.work.ShutdownPolicy | str",
+                "default": {
+                  "kind": "value",
+                  "value": "drain"
+                },
+                "kind": "positional_or_keyword",
+                "name": "policy",
+                "required": false
+              }
+            ],
+            "return": "experia.core.work.ShutdownReport"
+          }
+        }
+      ],
+      "path": "experia.Learner",
+      "signature": {
+        "parameters": [
+          {
+            "annotation": "experia.core.interfaces.MemoryStore",
+            "default": {
+              "kind": "required"
+            },
+            "kind": "positional_or_keyword",
+            "name": "store",
+            "required": true
+          },
+          {
+            "annotation": "experia.core.interfaces.Evaluator",
+            "default": {
+              "kind": "required"
+            },
+            "kind": "positional_or_keyword",
+            "name": "evaluator",
+            "required": true
+          },
+          {
+            "annotation": "experia.improvement.rules.RuleGenerator | None",
+            "default": {
+              "kind": "value",
+              "value": null
+            },
+            "kind": "positional_or_keyword",
+            "name": "rule_generator",
+            "required": false
+          },
+          {
+            "annotation": "experia.memory.embeddings.Embedder | None",
+            "default": {
+              "kind": "value",
+              "value": null
+            },
+            "kind": "positional_or_keyword",
+            "name": "embedder",
+            "required": false
+          },
+          {
+            "annotation": "str",
+            "default": {
+              "kind": "value",
+              "value": "default"
+            },
+            "kind": "positional_or_keyword",
+            "name": "agent_role",
+            "required": false
+          },
+          {
+            "annotation": "bool",
+            "default": {
+              "kind": "value",
+              "value": true
+            },
+            "kind": "positional_or_keyword",
+            "name": "background_evaluation",
+            "required": false
+          },
+          {
+            "annotation": "float",
+            "default": {
+              "kind": "value",
+              "value": 0.95
+            },
+            "kind": "positional_or_keyword",
+            "name": "dedup_threshold",
+            "required": false
+          },
+          {
+            "annotation": "typing.Literal['fallback', 'raise']",
+            "default": {
+              "kind": "value",
+              "value": "fallback"
+            },
+            "kind": "keyword_only",
+            "name": "embedding_failure",
+            "required": false
+          },
+          {
+            "annotation": "experia.security.protection.DataProtectionLayer | None",
+            "default": {
+              "kind": "value",
+              "value": null
+            },
+            "kind": "keyword_only",
+            "name": "data_protection",
+            "required": false
+          },
+          {
+            "annotation": "collections.abc.Callable[[<class 'experia.core.logging.LifecycleEvent'>], collections.abc.Awaitable[None] | None] | None",
+            "default": {
+              "kind": "value",
+              "value": null
+            },
+            "kind": "keyword_only",
+            "name": "lifecycle_observer",
+            "required": false
+          }
+        ],
+        "return": null
+      },
+      "target": "experia.core.learner.Learner"
+    },
+    {
+      "async": false,
+      "deprecation": {
+        "is_deprecated": false,
+        "message": null,
+        "replacement": null,
+        "since": null
+      },
+      "kind": "exception",
+      "members": [],
+      "path": "experia.LifecycleError",
+      "signature": {
+        "parameters": [
+          {
+            "annotation": "str | None",
+            "default": {
+              "kind": "value",
+              "value": null
+            },
+            "kind": "positional_or_keyword",
+            "name": "message",
+            "required": false
+          },
+          {
+            "annotation": "str",
+            "default": {
+              "kind": "required"
+            },
+            "kind": "keyword_only",
+            "name": "state",
+            "required": true
+          },
+          {
+            "annotation": "str",
+            "default": {
+              "kind": "required"
+            },
+            "kind": "keyword_only",
+            "name": "operation",
+            "required": true
+          }
+        ],
+        "return": "None"
+      },
+      "target": "experia.core.exceptions.LifecycleError"
+    },
+    {
+      "async": false,
+      "deprecation": {
+        "is_deprecated": false,
+        "message": null,
+        "replacement": null,
+        "since": null
+      },
+      "kind": "class",
+      "members": [
+        {
+          "async": true,
+          "deprecation": {
+            "is_deprecated": false,
+            "message": null,
+            "replacement": null,
+            "since": null
+          },
+          "kind": "method",
+          "name": "embed",
+          "signature": {
+            "parameters": [
+              {
+                "annotation": "list[str]",
+                "default": {
+                  "kind": "required"
+                },
+                "kind": "positional_or_keyword",
+                "name": "texts",
+                "required": true
+              }
+            ],
+            "return": "list[list[float]]"
+          }
+        },
+        {
+          "async": true,
+          "deprecation": {
+            "is_deprecated": false,
+            "message": null,
+            "replacement": null,
+            "since": null
+          },
+          "kind": "method",
+          "name": "embed_one",
+          "signature": {
+            "parameters": [
+              {
+                "annotation": "str",
+                "default": {
+                  "kind": "required"
+                },
+                "kind": "positional_or_keyword",
+                "name": "text",
+                "required": true
+              }
+            ],
+            "return": "list[float]"
+          }
+        }
+      ],
+      "path": "experia.LiteLLMEmbedder",
+      "signature": {
+        "parameters": [
+          {
+            "annotation": "str",
+            "default": {
+              "kind": "value",
+              "value": "text-embedding-3-small"
+            },
+            "kind": "positional_or_keyword",
+            "name": "model",
+            "required": false
+          },
+          {
+            "annotation": "experia.security.protection.DataProtectionLayer | None",
+            "default": {
+              "kind": "value",
+              "value": null
+            },
+            "kind": "keyword_only",
+            "name": "data_protection",
+            "required": false
+          }
+        ],
+        "return": null
+      },
+      "target": "experia.memory.embeddings.LiteLLMEmbedder"
+    },
+    {
+      "async": false,
+      "deprecation": {
+        "is_deprecated": false,
+        "message": null,
+        "replacement": null,
+        "since": null
+      },
+      "kind": "class",
+      "members": [],
+      "path": "experia.Memory",
+      "signature": {
+        "parameters": [
+          {
+            "annotation": "uuid.UUID",
+            "default": {
+              "kind": "factory",
+              "path": "uuid.uuid4"
+            },
+            "kind": "keyword_only",
+            "name": "id",
+            "required": false
+          },
+          {
+            "annotation": "str",
+            "default": {
+              "kind": "required"
+            },
+            "kind": "keyword_only",
+            "name": "content",
+            "required": true
+          },
+          {
+            "annotation": "experia.memory.models.MemoryType",
+            "default": {
+              "kind": "required"
+            },
+            "kind": "keyword_only",
+            "name": "type",
+            "required": true
+          },
+          {
+            "annotation": "str",
+            "default": {
+              "kind": "value",
+              "value": "default"
+            },
+            "kind": "keyword_only",
+            "name": "agent_role",
+            "required": false
+          },
+          {
+            "annotation": "float",
+            "default": {
+              "kind": "value",
+              "value": 0.8
+            },
+            "kind": "keyword_only",
+            "name": "confidence",
+            "required": false
+          },
+          {
+            "annotation": "float",
+            "default": {
+              "kind": "value",
+              "value": 0.5
+            },
+            "kind": "keyword_only",
+            "name": "importance",
+            "required": false
+          },
+          {
+            "annotation": "str | None",
+            "default": {
+              "kind": "value",
+              "value": null
+            },
+            "kind": "keyword_only",
+            "name": "source",
+            "required": false
+          },
+          {
+            "annotation": "dict[str, typing.Any] | None",
+            "default": {
+              "kind": "factory",
+              "path": "builtins.dict"
+            },
+            "kind": "keyword_only",
+            "name": "metadata",
+            "required": false
+          },
+          {
+            "annotation": "datetime.datetime",
+            "default": {
+              "kind": "factory",
+              "path": "experia.memory.models.Memory.<lambda>"
+            },
+            "kind": "keyword_only",
+            "name": "created_at",
+            "required": false
+          },
+          {
+            "annotation": "datetime.datetime",
+            "default": {
+              "kind": "factory",
+              "path": "experia.memory.models.Memory.<lambda>"
+            },
+            "kind": "keyword_only",
+            "name": "updated_at",
+            "required": false
+          },
+          {
+            "annotation": "datetime.datetime | None",
+            "default": {
+              "kind": "value",
+              "value": null
+            },
+            "kind": "keyword_only",
+            "name": "expires_at",
+            "required": false
+          },
+          {
+            "annotation": "int",
+            "default": {
+              "kind": "value",
+              "value": 0
+            },
+            "kind": "keyword_only",
+            "name": "reinforcement_count",
+            "required": false
+          },
+          {
+            "annotation": "int",
+            "default": {
+              "kind": "value",
+              "value": 0
+            },
+            "kind": "keyword_only",
+            "name": "success_count",
+            "required": false
+          },
+          {
+            "annotation": "list[float] | None",
+            "default": {
+              "kind": "value",
+              "value": null
+            },
+            "kind": "keyword_only",
+            "name": "embedding",
+            "required": false
+          }
+        ],
+        "return": "None"
+      },
+      "target": "experia.memory.models.Memory"
+    },
+    {
+      "async": false,
+      "deprecation": {
+        "is_deprecated": false,
+        "message": null,
+        "replacement": null,
+        "since": null
+      },
+      "kind": "enum",
+      "members": [],
+      "path": "experia.MemoryType",
+      "signature": null,
+      "target": "experia.memory.models.MemoryType",
+      "values": [
+        {
+          "name": "FACT",
+          "value": "fact"
+        },
+        {
+          "name": "PREFERENCE",
+          "value": "preference"
+        },
+        {
+          "name": "LESSON",
+          "value": "lesson"
+        },
+        {
+          "name": "RULE",
+          "value": "rule"
+        },
+        {
+          "name": "STRATEGY",
+          "value": "strategy"
+        },
+        {
+          "name": "EXPERIENCE",
+          "value": "experience"
+        }
+      ]
+    },
+    {
+      "async": false,
+      "deprecation": {
+        "is_deprecated": false,
+        "message": null,
+        "replacement": null,
+        "since": null
+      },
+      "kind": "class",
+      "members": [
+        {
+          "async": true,
+          "deprecation": {
+            "is_deprecated": false,
+            "message": null,
+            "replacement": null,
+            "since": null
+          },
+          "kind": "method",
+          "name": "close",
+          "signature": {
+            "parameters": [],
+            "return": "None"
+          }
+        },
+        {
+          "async": true,
+          "deprecation": {
+            "is_deprecated": false,
+            "message": null,
+            "replacement": null,
+            "since": null
+          },
+          "kind": "method",
+          "name": "find_similar_memory",
+          "signature": {
+            "parameters": [
+              {
+                "annotation": "list[float]",
+                "default": {
+                  "kind": "required"
+                },
+                "kind": "positional_or_keyword",
+                "name": "embedding",
+                "required": true
+              },
+              {
+                "annotation": "experia.memory.models.MemoryType | None",
+                "default": {
+                  "kind": "value",
+                  "value": null
+                },
+                "kind": "positional_or_keyword",
+                "name": "memory_type",
+                "required": false
+              },
+              {
+                "annotation": "str | None",
+                "default": {
+                  "kind": "value",
+                  "value": null
+                },
+                "kind": "positional_or_keyword",
+                "name": "agent_role",
+                "required": false
+              },
+              {
+                "annotation": "float",
+                "default": {
+                  "kind": "value",
+                  "value": 0.95
+                },
+                "kind": "positional_or_keyword",
+                "name": "threshold",
+                "required": false
+              }
+            ],
+            "return": "experia.memory.models.Memory | None"
+          }
+        },
+        {
+          "async": true,
+          "deprecation": {
+            "is_deprecated": false,
+            "message": null,
+            "replacement": null,
+            "since": null
+          },
+          "kind": "method",
+          "name": "get_experience",
+          "signature": {
+            "parameters": [
+              {
+                "annotation": "uuid.UUID",
+                "default": {
+                  "kind": "required"
+                },
+                "kind": "positional_or_keyword",
+                "name": "experience_id",
+                "required": true
+              }
+            ],
+            "return": "experia.experience.models.ExperienceRecord | None"
+          }
+        },
+        {
+          "async": true,
+          "deprecation": {
+            "is_deprecated": false,
+            "message": null,
+            "replacement": null,
+            "since": null
+          },
+          "kind": "method",
+          "name": "get_memory",
+          "signature": {
+            "parameters": [
+              {
+                "annotation": "uuid.UUID",
+                "default": {
+                  "kind": "required"
+                },
+                "kind": "positional_or_keyword",
+                "name": "memory_id",
+                "required": true
+              }
+            ],
+            "return": "experia.memory.models.Memory | None"
+          }
+        },
+        {
+          "async": true,
+          "deprecation": {
+            "is_deprecated": false,
+            "message": null,
+            "replacement": null,
+            "since": null
+          },
+          "kind": "method",
+          "name": "get_recent_experiences",
+          "signature": {
+            "parameters": [
+              {
+                "annotation": "int",
+                "default": {
+                  "kind": "value",
+                  "value": 50
+                },
+                "kind": "positional_or_keyword",
+                "name": "limit",
+                "required": false
+              }
+            ],
+            "return": "list[experia.experience.models.ExperienceRecord]"
+          }
+        },
+        {
+          "async": true,
+          "deprecation": {
+            "is_deprecated": false,
+            "message": null,
+            "replacement": null,
+            "since": null
+          },
+          "kind": "method",
+          "name": "initialize",
+          "signature": {
+            "parameters": [],
+            "return": "None"
+          }
+        },
+        {
+          "async": true,
+          "deprecation": {
+            "is_deprecated": false,
+            "message": null,
+            "replacement": null,
+            "since": null
+          },
+          "kind": "method",
+          "name": "prune_expired",
+          "signature": {
+            "parameters": [],
+            "return": "int"
+          }
+        },
+        {
+          "async": true,
+          "deprecation": {
+            "is_deprecated": false,
+            "message": null,
+            "replacement": null,
+            "since": null
+          },
+          "kind": "method",
+          "name": "save_experience",
+          "signature": {
+            "parameters": [
+              {
+                "annotation": "experia.experience.models.ExperienceRecord",
+                "default": {
+                  "kind": "required"
+                },
+                "kind": "positional_or_keyword",
+                "name": "experience",
+                "required": true
+              }
+            ],
+            "return": "None"
+          }
+        },
+        {
+          "async": true,
+          "deprecation": {
+            "is_deprecated": false,
+            "message": null,
+            "replacement": null,
+            "since": null
+          },
+          "kind": "method",
+          "name": "save_lesson",
+          "signature": {
+            "parameters": [
+              {
+                "annotation": "experia.experience.models.Lesson",
+                "default": {
+                  "kind": "required"
+                },
+                "kind": "positional_or_keyword",
+                "name": "lesson",
+                "required": true
+              }
+            ],
+            "return": "None"
+          }
+        },
+        {
+          "async": true,
+          "deprecation": {
+            "is_deprecated": false,
+            "message": null,
+            "replacement": null,
+            "since": null
+          },
+          "kind": "method",
+          "name": "save_lesson_and_memory",
+          "signature": {
+            "parameters": [
+              {
+                "annotation": "experia.experience.models.Lesson",
+                "default": {
+                  "kind": "required"
+                },
+                "kind": "positional_or_keyword",
+                "name": "lesson",
+                "required": true
+              },
+              {
+                "annotation": "experia.memory.models.Memory",
+                "default": {
+                  "kind": "required"
+                },
+                "kind": "positional_or_keyword",
+                "name": "memory",
+                "required": true
+              }
+            ],
+            "return": "None"
+          }
+        },
+        {
+          "async": true,
+          "deprecation": {
+            "is_deprecated": false,
+            "message": null,
+            "replacement": null,
+            "since": null
+          },
+          "kind": "method",
+          "name": "save_memory",
+          "signature": {
+            "parameters": [
+              {
+                "annotation": "experia.memory.models.Memory",
+                "default": {
+                  "kind": "required"
+                },
+                "kind": "positional_or_keyword",
+                "name": "memory",
+                "required": true
+              }
+            ],
+            "return": "None"
+          }
+        },
+        {
+          "async": true,
+          "deprecation": {
+            "is_deprecated": false,
+            "message": null,
+            "replacement": null,
+            "since": null
+          },
+          "kind": "method",
+          "name": "search_memories",
+          "signature": {
+            "parameters": [
+              {
+                "annotation": "str",
+                "default": {
+                  "kind": "value",
+                  "value": ""
+                },
+                "kind": "positional_or_keyword",
+                "name": "query",
+                "required": false
+              },
+              {
+                "annotation": "experia.memory.models.MemoryType | None",
+                "default": {
+                  "kind": "value",
+                  "value": null
+                },
+                "kind": "positional_or_keyword",
+                "name": "memory_type",
+                "required": false
+              },
+              {
+                "annotation": "str | None",
+                "default": {
+                  "kind": "value",
+                  "value": null
+                },
+                "kind": "positional_or_keyword",
+                "name": "agent_role",
+                "required": false
+              },
+              {
+                "annotation": "int",
+                "default": {
+                  "kind": "value",
+                  "value": 10
+                },
+                "kind": "positional_or_keyword",
+                "name": "limit",
+                "required": false
+              },
+              {
+                "annotation": "list[float] | None",
+                "default": {
+                  "kind": "value",
+                  "value": null
+                },
+                "kind": "positional_or_keyword",
+                "name": "query_embedding",
+                "required": false
+              },
+              {
+                "annotation": "bool",
+                "default": {
+                  "kind": "value",
+                  "value": false
+                },
+                "kind": "positional_or_keyword",
+                "name": "include_expired",
+                "required": false
+              }
+            ],
+            "return": "list[experia.memory.models.Memory]"
+          }
+        },
+        {
+          "async": true,
+          "deprecation": {
+            "is_deprecated": false,
+            "message": null,
+            "replacement": null,
+            "since": null
+          },
+          "kind": "method",
+          "name": "update_memory_feedback",
+          "signature": {
+            "parameters": [
+              {
+                "annotation": "uuid.UUID",
+                "default": {
+                  "kind": "required"
+                },
+                "kind": "positional_or_keyword",
+                "name": "memory_id",
+                "required": true
+              },
+              {
+                "annotation": "bool",
+                "default": {
+                  "kind": "required"
+                },
+                "kind": "positional_or_keyword",
+                "name": "success",
+                "required": true
+              },
+              {
+                "annotation": "float",
+                "default": {
+                  "kind": "value",
+                  "value": 0.2
+                },
+                "kind": "positional_or_keyword",
+                "name": "alpha",
+                "required": false
+              }
+            ],
+            "return": "experia.memory.models.Memory | None"
+          }
+        }
+      ],
+      "path": "experia.SQLiteStore",
+      "signature": {
+        "parameters": [
+          {
+            "annotation": "str",
+            "default": {
+              "kind": "value",
+              "value": "experia.db"
+            },
+            "kind": "positional_or_keyword",
+            "name": "db_path",
+            "required": false
+          }
+        ],
+        "return": null
+      },
+      "target": "experia.memory.store.SQLiteStore"
+    },
+    {
+      "async": false,
+      "deprecation": {
+        "is_deprecated": false,
+        "message": null,
+        "replacement": null,
+        "since": null
+      },
+      "kind": "exception",
+      "members": [],
+      "path": "experia.SanitizationError",
+      "signature": {
+        "parameters": [
+          {
+            "annotation": "str | None",
+            "default": {
+              "kind": "value",
+              "value": null
+            },
+            "kind": "positional_or_keyword",
+            "name": "message",
+            "required": false
+          },
+          {
+            "annotation": "collections.abc.Iterable[int | str]",
+            "default": {
+              "items": [],
+              "kind": "tuple"
+            },
+            "kind": "keyword_only",
+            "name": "path",
+            "required": false
+          },
+          {
+            "annotation": "str | None",
+            "default": {
+              "kind": "value",
+              "value": null
+            },
+            "kind": "keyword_only",
+            "name": "operation",
+            "required": false
+          }
+        ],
+        "return": "None"
+      },
+      "target": "experia.core.exceptions.SanitizationError"
+    },
+    {
+      "async": false,
+      "deprecation": {
+        "is_deprecated": false,
+        "message": null,
+        "replacement": null,
+        "since": null
+      },
+      "kind": "class",
+      "members": [
+        {
+          "async": true,
+          "deprecation": {
+            "is_deprecated": false,
+            "message": null,
+            "replacement": null,
+            "since": null
+          },
+          "kind": "method",
+          "name": "evaluate",
+          "signature": {
+            "parameters": [
+              {
+                "annotation": "experia.experience.models.ExperienceRecord",
+                "default": {
+                  "kind": "required"
+                },
+                "kind": "positional_or_keyword",
+                "name": "experience",
+                "required": true
+              }
+            ],
+            "return": "experia.experience.models.Lesson | None"
+          }
+        }
+      ],
+      "path": "experia.SimpleHeuristicEvaluator",
+      "signature": {
+        "parameters": [],
+        "return": "None"
+      },
+      "target": "experia.experience.evaluator.SimpleHeuristicEvaluator"
+    },
+    {
+      "async": false,
+      "deprecation": {
+        "is_deprecated": false,
+        "message": null,
+        "replacement": null,
+        "since": null
+      },
+      "kind": "exception",
+      "members": [],
+      "path": "experia.StorageError",
+      "signature": {
+        "parameters": [
+          {
+            "annotation": "object",
+            "default": {
+              "kind": "variadic"
+            },
+            "kind": "var_positional",
+            "name": "args",
+            "required": false
+          },
+          {
+            "annotation": "str | None",
+            "default": {
+              "kind": "value",
+              "value": null
+            },
+            "kind": "keyword_only",
+            "name": "operation",
+            "required": false
+          },
+          {
+            "annotation": "str | None",
+            "default": {
+              "kind": "value",
+              "value": null
+            },
+            "kind": "keyword_only",
+            "name": "table",
+            "required": false
+          },
+          {
+            "annotation": "collections.abc.Iterable[str | uuid.UUID] | str | uuid.UUID",
+            "default": {
+              "items": [],
+              "kind": "tuple"
+            },
+            "kind": "keyword_only",
+            "name": "record_ids",
+            "required": false
+          },
+          {
+            "annotation": "str | None",
+            "default": {
+              "kind": "value",
+              "value": null
+            },
+            "kind": "keyword_only",
+            "name": "migration",
+            "required": false
+          },
+          {
+            "annotation": "str | None",
+            "default": {
+              "kind": "value",
+              "value": null
+            },
+            "kind": "keyword_only",
+            "name": "field",
+            "required": false
+          }
+        ],
+        "return": "None"
+      },
+      "target": "experia.core.exceptions.StorageError"
+    },
+    {
+      "async": false,
+      "deprecation": {
+        "is_deprecated": false,
+        "message": null,
+        "replacement": null,
+        "since": null
+      },
+      "kind": "exception",
+      "members": [],
+      "path": "experia.UnavailableFeatureError",
+      "signature": {
+        "parameters": [
+          {
+            "annotation": "str",
+            "default": {
+              "kind": "required"
+            },
+            "kind": "positional_or_keyword",
+            "name": "feature",
+            "required": true
+          },
+          {
+            "annotation": "str",
+            "default": {
+              "kind": "value",
+              "value": "planned"
+            },
+            "kind": "keyword_only",
+            "name": "status",
+            "required": false
+          },
+          {
+            "annotation": "str | None",
+            "default": {
+              "kind": "value",
+              "value": null
+            },
+            "kind": "keyword_only",
+            "name": "message",
+            "required": false
+          }
+        ],
+        "return": "None"
+      },
+      "target": "experia.core.exceptions.UnavailableFeatureError"
+    },
+    {
+      "async": false,
+      "deprecation": {
+        "is_deprecated": false,
+        "message": null,
+        "replacement": null,
+        "since": null
+      },
+      "kind": "exception",
+      "members": [],
+      "path": "experia.core.ConfigurationError",
+      "signature": {
+        "parameters": [
+          {
+            "annotation": "object",
+            "default": {
+              "kind": "variadic"
+            },
+            "kind": "var_positional",
+            "name": "args",
+            "required": false
+          },
+          {
+            "annotation": "str | None",
+            "default": {
+              "kind": "value",
+              "value": null
+            },
+            "kind": "keyword_only",
+            "name": "feature",
+            "required": false
+          },
+          {
+            "annotation": "str | None",
+            "default": {
+              "kind": "value",
+              "value": null
+            },
+            "kind": "keyword_only",
+            "name": "parameter",
+            "required": false
+          },
+          {
+            "annotation": "str | None",
+            "default": {
+              "kind": "value",
+              "value": null
+            },
+            "kind": "keyword_only",
+            "name": "extra",
+            "required": false
+          }
+        ],
+        "return": "None"
+      },
+      "target": "experia.core.exceptions.ConfigurationError"
+    },
+    {
+      "async": false,
+      "deprecation": {
+        "is_deprecated": false,
+        "message": null,
+        "replacement": null,
+        "since": null
+      },
+      "kind": "exception",
+      "members": [],
+      "path": "experia.core.EvaluationError",
+      "signature": null,
+      "target": "experia.core.exceptions.EvaluationError"
+    },
+    {
+      "async": false,
+      "deprecation": {
+        "is_deprecated": false,
+        "message": null,
+        "replacement": null,
+        "since": null
+      },
+      "kind": "exception",
+      "members": [],
+      "path": "experia.core.EvaluationFailure",
+      "signature": {
+        "parameters": [
+          {
+            "annotation": "str | None",
+            "default": {
+              "kind": "value",
+              "value": null
+            },
+            "kind": "positional_or_keyword",
+            "name": "message",
+            "required": false
+          },
+          {
+            "annotation": "uuid.UUID",
+            "default": {
+              "kind": "required"
+            },
+            "kind": "keyword_only",
+            "name": "job_id",
+            "required": true
+          },
+          {
+            "annotation": "str",
+            "default": {
+              "kind": "required"
+            },
+            "kind": "keyword_only",
+            "name": "operation",
+            "required": true
+          },
+          {
+            "annotation": "uuid.UUID | None",
+            "default": {
+              "kind": "value",
+              "value": null
+            },
+            "kind": "keyword_only",
+            "name": "experience_id",
+            "required": false
+          },
+          {
+            "annotation": "collections.abc.Iterable[experia.core.exceptions.FailureDetail]",
+            "default": {
+              "items": [],
+              "kind": "tuple"
+            },
+            "kind": "keyword_only",
+            "name": "failures",
+            "required": false
+          }
+        ],
+        "return": "None"
+      },
+      "target": "experia.core.exceptions.EvaluationFailure"
+    },
+    {
+      "async": false,
+      "deprecation": {
+        "is_deprecated": false,
+        "message": null,
+        "replacement": null,
+        "since": null
+      },
+      "kind": "exception",
+      "members": [],
+      "path": "experia.core.ExperiaError",
+      "signature": null,
+      "target": "experia.core.exceptions.ExperiaError"
+    },
+    {
+      "async": false,
+      "deprecation": {
+        "is_deprecated": false,
+        "message": null,
+        "replacement": null,
+        "since": null
+      },
+      "kind": "dataclass",
+      "members": [],
+      "path": "experia.core.FailureDetail",
+      "signature": {
+        "parameters": [
+          {
+            "annotation": "uuid.UUID",
+            "default": {
+              "kind": "required"
+            },
+            "kind": "positional_or_keyword",
+            "name": "job_id",
+            "required": true
+          },
+          {
+            "annotation": "str",
+            "default": {
+              "kind": "required"
+            },
+            "kind": "positional_or_keyword",
+            "name": "operation",
+            "required": true
+          },
+          {
+            "annotation": "uuid.UUID | None",
+            "default": {
+              "kind": "value",
+              "value": null
+            },
+            "kind": "positional_or_keyword",
+            "name": "experience_id",
+            "required": false
+          },
+          {
+            "annotation": "str",
+            "default": {
+              "kind": "value",
+              "value": "evaluation_failure"
+            },
+            "kind": "positional_or_keyword",
+            "name": "error_type",
+            "required": false
+          }
+        ],
+        "return": "None"
+      },
+      "target": "experia.core.exceptions.FailureDetail"
+    },
+    {
+      "async": false,
+      "deprecation": {
+        "is_deprecated": false,
+        "message": null,
+        "replacement": null,
+        "since": null
+      },
+      "kind": "exception",
+      "members": [],
+      "path": "experia.core.LifecycleError",
+      "signature": {
+        "parameters": [
+          {
+            "annotation": "str | None",
+            "default": {
+              "kind": "value",
+              "value": null
+            },
+            "kind": "positional_or_keyword",
+            "name": "message",
+            "required": false
+          },
+          {
+            "annotation": "str",
+            "default": {
+              "kind": "required"
+            },
+            "kind": "keyword_only",
+            "name": "state",
+            "required": true
+          },
+          {
+            "annotation": "str",
+            "default": {
+              "kind": "required"
+            },
+            "kind": "keyword_only",
+            "name": "operation",
+            "required": true
+          }
+        ],
+        "return": "None"
+      },
+      "target": "experia.core.exceptions.LifecycleError"
+    },
+    {
+      "async": false,
+      "deprecation": {
+        "is_deprecated": false,
+        "message": null,
+        "replacement": null,
+        "since": null
+      },
+      "kind": "exception",
+      "members": [],
+      "path": "experia.core.SanitizationError",
+      "signature": {
+        "parameters": [
+          {
+            "annotation": "str | None",
+            "default": {
+              "kind": "value",
+              "value": null
+            },
+            "kind": "positional_or_keyword",
+            "name": "message",
+            "required": false
+          },
+          {
+            "annotation": "collections.abc.Iterable[int | str]",
+            "default": {
+              "items": [],
+              "kind": "tuple"
+            },
+            "kind": "keyword_only",
+            "name": "path",
+            "required": false
+          },
+          {
+            "annotation": "str | None",
+            "default": {
+              "kind": "value",
+              "value": null
+            },
+            "kind": "keyword_only",
+            "name": "operation",
+            "required": false
+          }
+        ],
+        "return": "None"
+      },
+      "target": "experia.core.exceptions.SanitizationError"
+    },
+    {
+      "async": false,
+      "deprecation": {
+        "is_deprecated": false,
+        "message": null,
+        "replacement": null,
+        "since": null
+      },
+      "kind": "exception",
+      "members": [],
+      "path": "experia.core.StorageError",
+      "signature": {
+        "parameters": [
+          {
+            "annotation": "object",
+            "default": {
+              "kind": "variadic"
+            },
+            "kind": "var_positional",
+            "name": "args",
+            "required": false
+          },
+          {
+            "annotation": "str | None",
+            "default": {
+              "kind": "value",
+              "value": null
+            },
+            "kind": "keyword_only",
+            "name": "operation",
+            "required": false
+          },
+          {
+            "annotation": "str | None",
+            "default": {
+              "kind": "value",
+              "value": null
+            },
+            "kind": "keyword_only",
+            "name": "table",
+            "required": false
+          },
+          {
+            "annotation": "collections.abc.Iterable[str | uuid.UUID] | str | uuid.UUID",
+            "default": {
+              "items": [],
+              "kind": "tuple"
+            },
+            "kind": "keyword_only",
+            "name": "record_ids",
+            "required": false
+          },
+          {
+            "annotation": "str | None",
+            "default": {
+              "kind": "value",
+              "value": null
+            },
+            "kind": "keyword_only",
+            "name": "migration",
+            "required": false
+          },
+          {
+            "annotation": "str | None",
+            "default": {
+              "kind": "value",
+              "value": null
+            },
+            "kind": "keyword_only",
+            "name": "field",
+            "required": false
+          }
+        ],
+        "return": "None"
+      },
+      "target": "experia.core.exceptions.StorageError"
+    },
+    {
+      "async": false,
+      "deprecation": {
+        "is_deprecated": false,
+        "message": null,
+        "replacement": null,
+        "since": null
+      },
+      "kind": "exception",
+      "members": [],
+      "path": "experia.core.UnavailableFeatureError",
+      "signature": {
+        "parameters": [
+          {
+            "annotation": "str",
+            "default": {
+              "kind": "required"
+            },
+            "kind": "positional_or_keyword",
+            "name": "feature",
+            "required": true
+          },
+          {
+            "annotation": "str",
+            "default": {
+              "kind": "value",
+              "value": "planned"
+            },
+            "kind": "keyword_only",
+            "name": "status",
+            "required": false
+          },
+          {
+            "annotation": "str | None",
+            "default": {
+              "kind": "value",
+              "value": null
+            },
+            "kind": "keyword_only",
+            "name": "message",
+            "required": false
+          }
+        ],
+        "return": "None"
+      },
+      "target": "experia.core.exceptions.UnavailableFeatureError"
+    },
+    {
+      "async": false,
+      "deprecation": {
+        "is_deprecated": false,
+        "message": null,
+        "replacement": null,
+        "since": null
+      },
+      "kind": "exception",
+      "members": [],
+      "path": "experia.core.exceptions.ConfigurationError",
+      "signature": {
+        "parameters": [
+          {
+            "annotation": "object",
+            "default": {
+              "kind": "variadic"
+            },
+            "kind": "var_positional",
+            "name": "args",
+            "required": false
+          },
+          {
+            "annotation": "str | None",
+            "default": {
+              "kind": "value",
+              "value": null
+            },
+            "kind": "keyword_only",
+            "name": "feature",
+            "required": false
+          },
+          {
+            "annotation": "str | None",
+            "default": {
+              "kind": "value",
+              "value": null
+            },
+            "kind": "keyword_only",
+            "name": "parameter",
+            "required": false
+          },
+          {
+            "annotation": "str | None",
+            "default": {
+              "kind": "value",
+              "value": null
+            },
+            "kind": "keyword_only",
+            "name": "extra",
+            "required": false
+          }
+        ],
+        "return": "None"
+      },
+      "target": "experia.core.exceptions.ConfigurationError"
+    },
+    {
+      "async": false,
+      "deprecation": {
+        "is_deprecated": false,
+        "message": null,
+        "replacement": null,
+        "since": null
+      },
+      "kind": "exception",
+      "members": [],
+      "path": "experia.core.exceptions.EvaluationError",
+      "signature": null,
+      "target": "experia.core.exceptions.EvaluationError"
+    },
+    {
+      "async": false,
+      "deprecation": {
+        "is_deprecated": false,
+        "message": null,
+        "replacement": null,
+        "since": null
+      },
+      "kind": "exception",
+      "members": [],
+      "path": "experia.core.exceptions.EvaluationFailure",
+      "signature": {
+        "parameters": [
+          {
+            "annotation": "str | None",
+            "default": {
+              "kind": "value",
+              "value": null
+            },
+            "kind": "positional_or_keyword",
+            "name": "message",
+            "required": false
+          },
+          {
+            "annotation": "uuid.UUID",
+            "default": {
+              "kind": "required"
+            },
+            "kind": "keyword_only",
+            "name": "job_id",
+            "required": true
+          },
+          {
+            "annotation": "str",
+            "default": {
+              "kind": "required"
+            },
+            "kind": "keyword_only",
+            "name": "operation",
+            "required": true
+          },
+          {
+            "annotation": "uuid.UUID | None",
+            "default": {
+              "kind": "value",
+              "value": null
+            },
+            "kind": "keyword_only",
+            "name": "experience_id",
+            "required": false
+          },
+          {
+            "annotation": "collections.abc.Iterable[experia.core.exceptions.FailureDetail]",
+            "default": {
+              "items": [],
+              "kind": "tuple"
+            },
+            "kind": "keyword_only",
+            "name": "failures",
+            "required": false
+          }
+        ],
+        "return": "None"
+      },
+      "target": "experia.core.exceptions.EvaluationFailure"
+    },
+    {
+      "async": false,
+      "deprecation": {
+        "is_deprecated": false,
+        "message": null,
+        "replacement": null,
+        "since": null
+      },
+      "kind": "exception",
+      "members": [],
+      "path": "experia.core.exceptions.ExperiaError",
+      "signature": null,
+      "target": "experia.core.exceptions.ExperiaError"
+    },
+    {
+      "async": false,
+      "deprecation": {
+        "is_deprecated": false,
+        "message": null,
+        "replacement": null,
+        "since": null
+      },
+      "kind": "dataclass",
+      "members": [],
+      "path": "experia.core.exceptions.FailureDetail",
+      "signature": {
+        "parameters": [
+          {
+            "annotation": "uuid.UUID",
+            "default": {
+              "kind": "required"
+            },
+            "kind": "positional_or_keyword",
+            "name": "job_id",
+            "required": true
+          },
+          {
+            "annotation": "str",
+            "default": {
+              "kind": "required"
+            },
+            "kind": "positional_or_keyword",
+            "name": "operation",
+            "required": true
+          },
+          {
+            "annotation": "uuid.UUID | None",
+            "default": {
+              "kind": "value",
+              "value": null
+            },
+            "kind": "positional_or_keyword",
+            "name": "experience_id",
+            "required": false
+          },
+          {
+            "annotation": "str",
+            "default": {
+              "kind": "value",
+              "value": "evaluation_failure"
+            },
+            "kind": "positional_or_keyword",
+            "name": "error_type",
+            "required": false
+          }
+        ],
+        "return": "None"
+      },
+      "target": "experia.core.exceptions.FailureDetail"
+    },
+    {
+      "async": false,
+      "deprecation": {
+        "is_deprecated": false,
+        "message": null,
+        "replacement": null,
+        "since": null
+      },
+      "kind": "exception",
+      "members": [],
+      "path": "experia.core.exceptions.LifecycleError",
+      "signature": {
+        "parameters": [
+          {
+            "annotation": "str | None",
+            "default": {
+              "kind": "value",
+              "value": null
+            },
+            "kind": "positional_or_keyword",
+            "name": "message",
+            "required": false
+          },
+          {
+            "annotation": "str",
+            "default": {
+              "kind": "required"
+            },
+            "kind": "keyword_only",
+            "name": "state",
+            "required": true
+          },
+          {
+            "annotation": "str",
+            "default": {
+              "kind": "required"
+            },
+            "kind": "keyword_only",
+            "name": "operation",
+            "required": true
+          }
+        ],
+        "return": "None"
+      },
+      "target": "experia.core.exceptions.LifecycleError"
+    },
+    {
+      "async": false,
+      "deprecation": {
+        "is_deprecated": false,
+        "message": null,
+        "replacement": null,
+        "since": null
+      },
+      "kind": "exception",
+      "members": [],
+      "path": "experia.core.exceptions.SanitizationError",
+      "signature": {
+        "parameters": [
+          {
+            "annotation": "str | None",
+            "default": {
+              "kind": "value",
+              "value": null
+            },
+            "kind": "positional_or_keyword",
+            "name": "message",
+            "required": false
+          },
+          {
+            "annotation": "collections.abc.Iterable[int | str]",
+            "default": {
+              "items": [],
+              "kind": "tuple"
+            },
+            "kind": "keyword_only",
+            "name": "path",
+            "required": false
+          },
+          {
+            "annotation": "str | None",
+            "default": {
+              "kind": "value",
+              "value": null
+            },
+            "kind": "keyword_only",
+            "name": "operation",
+            "required": false
+          }
+        ],
+        "return": "None"
+      },
+      "target": "experia.core.exceptions.SanitizationError"
+    },
+    {
+      "async": false,
+      "deprecation": {
+        "is_deprecated": false,
+        "message": null,
+        "replacement": null,
+        "since": null
+      },
+      "kind": "exception",
+      "members": [],
+      "path": "experia.core.exceptions.StorageError",
+      "signature": {
+        "parameters": [
+          {
+            "annotation": "object",
+            "default": {
+              "kind": "variadic"
+            },
+            "kind": "var_positional",
+            "name": "args",
+            "required": false
+          },
+          {
+            "annotation": "str | None",
+            "default": {
+              "kind": "value",
+              "value": null
+            },
+            "kind": "keyword_only",
+            "name": "operation",
+            "required": false
+          },
+          {
+            "annotation": "str | None",
+            "default": {
+              "kind": "value",
+              "value": null
+            },
+            "kind": "keyword_only",
+            "name": "table",
+            "required": false
+          },
+          {
+            "annotation": "collections.abc.Iterable[str | uuid.UUID] | str | uuid.UUID",
+            "default": {
+              "items": [],
+              "kind": "tuple"
+            },
+            "kind": "keyword_only",
+            "name": "record_ids",
+            "required": false
+          },
+          {
+            "annotation": "str | None",
+            "default": {
+              "kind": "value",
+              "value": null
+            },
+            "kind": "keyword_only",
+            "name": "migration",
+            "required": false
+          },
+          {
+            "annotation": "str | None",
+            "default": {
+              "kind": "value",
+              "value": null
+            },
+            "kind": "keyword_only",
+            "name": "field",
+            "required": false
+          }
+        ],
+        "return": "None"
+      },
+      "target": "experia.core.exceptions.StorageError"
+    },
+    {
+      "async": false,
+      "deprecation": {
+        "is_deprecated": false,
+        "message": null,
+        "replacement": null,
+        "since": null
+      },
+      "kind": "exception",
+      "members": [],
+      "path": "experia.core.exceptions.UnavailableFeatureError",
+      "signature": {
+        "parameters": [
+          {
+            "annotation": "str",
+            "default": {
+              "kind": "required"
+            },
+            "kind": "positional_or_keyword",
+            "name": "feature",
+            "required": true
+          },
+          {
+            "annotation": "str",
+            "default": {
+              "kind": "value",
+              "value": "planned"
+            },
+            "kind": "keyword_only",
+            "name": "status",
+            "required": false
+          },
+          {
+            "annotation": "str | None",
+            "default": {
+              "kind": "value",
+              "value": null
+            },
+            "kind": "keyword_only",
+            "name": "message",
+            "required": false
+          }
+        ],
+        "return": "None"
+      },
+      "target": "experia.core.exceptions.UnavailableFeatureError"
+    },
+    {
+      "async": false,
+      "deprecation": {
+        "is_deprecated": false,
+        "message": null,
+        "replacement": null,
+        "since": null
+      },
+      "kind": "protocol",
+      "members": [
+        {
+          "async": true,
+          "deprecation": {
+            "is_deprecated": false,
+            "message": null,
+            "replacement": null,
+            "since": null
+          },
+          "kind": "method",
+          "name": "evaluate",
+          "signature": {
+            "parameters": [
+              {
+                "annotation": "experia.experience.models.ExperienceRecord",
+                "default": {
+                  "kind": "required"
+                },
+                "kind": "positional_or_keyword",
+                "name": "experience",
+                "required": true
+              }
+            ],
+            "return": "experia.experience.models.Lesson | None"
+          }
+        }
+      ],
+      "path": "experia.core.interfaces.Evaluator",
+      "signature": {
+        "parameters": [
+          {
+            "annotation": null,
+            "default": {
+              "kind": "variadic"
+            },
+            "kind": "var_positional",
+            "name": "args",
+            "required": false
+          },
+          {
+            "annotation": null,
+            "default": {
+              "kind": "variadic"
+            },
+            "kind": "var_keyword",
+            "name": "kwargs",
+            "required": false
+          }
+        ],
+        "return": null
+      },
+      "target": "experia.core.interfaces.Evaluator"
+    },
+    {
+      "async": false,
+      "deprecation": {
+        "is_deprecated": false,
+        "message": null,
+        "replacement": null,
+        "since": null
+      },
+      "kind": "protocol",
+      "members": [
+        {
+          "async": true,
+          "deprecation": {
+            "is_deprecated": false,
+            "message": null,
+            "replacement": null,
+            "since": null
+          },
+          "kind": "method",
+          "name": "find_similar_memory",
+          "signature": {
+            "parameters": [
+              {
+                "annotation": "list[float]",
+                "default": {
+                  "kind": "required"
+                },
+                "kind": "positional_or_keyword",
+                "name": "embedding",
+                "required": true
+              },
+              {
+                "annotation": "experia.memory.models.MemoryType | None",
+                "default": {
+                  "kind": "value",
+                  "value": null
+                },
+                "kind": "positional_or_keyword",
+                "name": "memory_type",
+                "required": false
+              },
+              {
+                "annotation": "str | None",
+                "default": {
+                  "kind": "value",
+                  "value": null
+                },
+                "kind": "positional_or_keyword",
+                "name": "agent_role",
+                "required": false
+              },
+              {
+                "annotation": "float",
+                "default": {
+                  "kind": "value",
+                  "value": 0.95
+                },
+                "kind": "positional_or_keyword",
+                "name": "threshold",
+                "required": false
+              }
+            ],
+            "return": "experia.memory.models.Memory | None"
+          }
+        },
+        {
+          "async": true,
+          "deprecation": {
+            "is_deprecated": false,
+            "message": null,
+            "replacement": null,
+            "since": null
+          },
+          "kind": "method",
+          "name": "get_experience",
+          "signature": {
+            "parameters": [
+              {
+                "annotation": "uuid.UUID",
+                "default": {
+                  "kind": "required"
+                },
+                "kind": "positional_or_keyword",
+                "name": "experience_id",
+                "required": true
+              }
+            ],
+            "return": "experia.experience.models.ExperienceRecord | None"
+          }
+        },
+        {
+          "async": true,
+          "deprecation": {
+            "is_deprecated": false,
+            "message": null,
+            "replacement": null,
+            "since": null
+          },
+          "kind": "method",
+          "name": "get_memory",
+          "signature": {
+            "parameters": [
+              {
+                "annotation": "uuid.UUID",
+                "default": {
+                  "kind": "required"
+                },
+                "kind": "positional_or_keyword",
+                "name": "memory_id",
+                "required": true
+              }
+            ],
+            "return": "experia.memory.models.Memory | None"
+          }
+        },
+        {
+          "async": true,
+          "deprecation": {
+            "is_deprecated": false,
+            "message": null,
+            "replacement": null,
+            "since": null
+          },
+          "kind": "method",
+          "name": "get_recent_experiences",
+          "signature": {
+            "parameters": [
+              {
+                "annotation": "int",
+                "default": {
+                  "kind": "value",
+                  "value": 50
+                },
+                "kind": "positional_or_keyword",
+                "name": "limit",
+                "required": false
+              }
+            ],
+            "return": "list[experia.experience.models.ExperienceRecord]"
+          }
+        },
+        {
+          "async": true,
+          "deprecation": {
+            "is_deprecated": false,
+            "message": null,
+            "replacement": null,
+            "since": null
+          },
+          "kind": "method",
+          "name": "prune_expired",
+          "signature": {
+            "parameters": [],
+            "return": "int"
+          }
+        },
+        {
+          "async": true,
+          "deprecation": {
+            "is_deprecated": false,
+            "message": null,
+            "replacement": null,
+            "since": null
+          },
+          "kind": "method",
+          "name": "save_experience",
+          "signature": {
+            "parameters": [
+              {
+                "annotation": "experia.experience.models.ExperienceRecord",
+                "default": {
+                  "kind": "required"
+                },
+                "kind": "positional_or_keyword",
+                "name": "experience",
+                "required": true
+              }
+            ],
+            "return": "None"
+          }
+        },
+        {
+          "async": true,
+          "deprecation": {
+            "is_deprecated": false,
+            "message": null,
+            "replacement": null,
+            "since": null
+          },
+          "kind": "method",
+          "name": "save_lesson",
+          "signature": {
+            "parameters": [
+              {
+                "annotation": "experia.experience.models.Lesson",
+                "default": {
+                  "kind": "required"
+                },
+                "kind": "positional_or_keyword",
+                "name": "lesson",
+                "required": true
+              }
+            ],
+            "return": "None"
+          }
+        },
+        {
+          "async": true,
+          "deprecation": {
+            "is_deprecated": false,
+            "message": null,
+            "replacement": null,
+            "since": null
+          },
+          "kind": "method",
+          "name": "save_lesson_and_memory",
+          "signature": {
+            "parameters": [
+              {
+                "annotation": "experia.experience.models.Lesson",
+                "default": {
+                  "kind": "required"
+                },
+                "kind": "positional_or_keyword",
+                "name": "lesson",
+                "required": true
+              },
+              {
+                "annotation": "experia.memory.models.Memory",
+                "default": {
+                  "kind": "required"
+                },
+                "kind": "positional_or_keyword",
+                "name": "memory",
+                "required": true
+              }
+            ],
+            "return": "None"
+          }
+        },
+        {
+          "async": true,
+          "deprecation": {
+            "is_deprecated": false,
+            "message": null,
+            "replacement": null,
+            "since": null
+          },
+          "kind": "method",
+          "name": "save_memory",
+          "signature": {
+            "parameters": [
+              {
+                "annotation": "experia.memory.models.Memory",
+                "default": {
+                  "kind": "required"
+                },
+                "kind": "positional_or_keyword",
+                "name": "memory",
+                "required": true
+              }
+            ],
+            "return": "None"
+          }
+        },
+        {
+          "async": true,
+          "deprecation": {
+            "is_deprecated": false,
+            "message": null,
+            "replacement": null,
+            "since": null
+          },
+          "kind": "method",
+          "name": "search_memories",
+          "signature": {
+            "parameters": [
+              {
+                "annotation": "str",
+                "default": {
+                  "kind": "value",
+                  "value": ""
+                },
+                "kind": "positional_or_keyword",
+                "name": "query",
+                "required": false
+              },
+              {
+                "annotation": "experia.memory.models.MemoryType | None",
+                "default": {
+                  "kind": "value",
+                  "value": null
+                },
+                "kind": "positional_or_keyword",
+                "name": "memory_type",
+                "required": false
+              },
+              {
+                "annotation": "str | None",
+                "default": {
+                  "kind": "value",
+                  "value": null
+                },
+                "kind": "positional_or_keyword",
+                "name": "agent_role",
+                "required": false
+              },
+              {
+                "annotation": "int",
+                "default": {
+                  "kind": "value",
+                  "value": 10
+                },
+                "kind": "positional_or_keyword",
+                "name": "limit",
+                "required": false
+              },
+              {
+                "annotation": "list[float] | None",
+                "default": {
+                  "kind": "value",
+                  "value": null
+                },
+                "kind": "positional_or_keyword",
+                "name": "query_embedding",
+                "required": false
+              },
+              {
+                "annotation": "bool",
+                "default": {
+                  "kind": "value",
+                  "value": false
+                },
+                "kind": "positional_or_keyword",
+                "name": "include_expired",
+                "required": false
+              }
+            ],
+            "return": "list[experia.memory.models.Memory]"
+          }
+        },
+        {
+          "async": true,
+          "deprecation": {
+            "is_deprecated": false,
+            "message": null,
+            "replacement": null,
+            "since": null
+          },
+          "kind": "method",
+          "name": "update_memory_feedback",
+          "signature": {
+            "parameters": [
+              {
+                "annotation": "uuid.UUID",
+                "default": {
+                  "kind": "required"
+                },
+                "kind": "positional_or_keyword",
+                "name": "memory_id",
+                "required": true
+              },
+              {
+                "annotation": "bool",
+                "default": {
+                  "kind": "required"
+                },
+                "kind": "positional_or_keyword",
+                "name": "success",
+                "required": true
+              },
+              {
+                "annotation": "float",
+                "default": {
+                  "kind": "value",
+                  "value": 0.2
+                },
+                "kind": "positional_or_keyword",
+                "name": "alpha",
+                "required": false
+              }
+            ],
+            "return": "experia.memory.models.Memory | None"
+          }
+        }
+      ],
+      "path": "experia.core.interfaces.MemoryStore",
+      "signature": {
+        "parameters": [
+          {
+            "annotation": null,
+            "default": {
+              "kind": "variadic"
+            },
+            "kind": "var_positional",
+            "name": "args",
+            "required": false
+          },
+          {
+            "annotation": null,
+            "default": {
+              "kind": "variadic"
+            },
+            "kind": "var_keyword",
+            "name": "kwargs",
+            "required": false
+          }
+        ],
+        "return": null
+      },
+      "target": "experia.core.interfaces.MemoryStore"
+    },
+    {
+      "async": false,
+      "deprecation": {
+        "is_deprecated": false,
+        "message": null,
+        "replacement": null,
+        "since": null
+      },
+      "kind": "class",
+      "members": [
+        {
+          "async": true,
+          "deprecation": {
+            "is_deprecated": false,
+            "message": null,
+            "replacement": null,
+            "since": null
+          },
+          "kind": "method",
+          "name": "aclose",
+          "signature": {
+            "parameters": [
+              {
+                "annotation": "experia.core.work.ShutdownPolicy | str",
+                "default": {
+                  "kind": "value",
+                  "value": "drain"
+                },
+                "kind": "positional_or_keyword",
+                "name": "policy",
+                "required": false
+              },
+              {
+                "annotation": "bool",
+                "default": {
+                  "kind": "value",
+                  "value": false
+                },
+                "kind": "keyword_only",
+                "name": "close_store",
+                "required": false
+              }
+            ],
+            "return": "None"
+          }
+        },
+        {
+          "async": true,
+          "deprecation": {
+            "is_deprecated": false,
+            "message": null,
+            "replacement": null,
+            "since": null
+          },
+          "kind": "method",
+          "name": "flush",
+          "signature": {
+            "parameters": [],
+            "return": "experia.core.work.FlushReport"
+          }
+        },
+        {
+          "async": true,
+          "deprecation": {
+            "is_deprecated": false,
+            "message": null,
+            "replacement": null,
+            "since": null
+          },
+          "kind": "method",
+          "name": "prune",
+          "signature": {
+            "parameters": [],
+            "return": "int"
+          }
+        },
+        {
+          "async": true,
+          "deprecation": {
+            "is_deprecated": false,
+            "message": null,
+            "replacement": null,
+            "since": null
+          },
+          "kind": "method",
+          "name": "record",
+          "signature": {
+            "parameters": [
+              {
+                "annotation": "str",
+                "default": {
+                  "kind": "required"
+                },
+                "kind": "positional_or_keyword",
+                "name": "task",
+                "required": true
+              },
+              {
+                "annotation": "str",
+                "default": {
+                  "kind": "required"
+                },
+                "kind": "positional_or_keyword",
+                "name": "action",
+                "required": true
+              },
+              {
+                "annotation": "str",
+                "default": {
+                  "kind": "required"
+                },
+                "kind": "positional_or_keyword",
+                "name": "result",
+                "required": true
+              },
+              {
+                "annotation": "dict[str, typing.Any] | None",
+                "default": {
+                  "kind": "value",
+                  "value": null
+                },
+                "kind": "positional_or_keyword",
+                "name": "context",
+                "required": false
+              }
+            ],
+            "return": "experia.experience.models.ExperienceRecord"
+          }
+        },
+        {
+          "async": true,
+          "deprecation": {
+            "is_deprecated": false,
+            "message": null,
+            "replacement": null,
+            "since": null
+          },
+          "kind": "method",
+          "name": "reflect",
+          "signature": {
+            "parameters": [
+              {
+                "annotation": "str",
+                "default": {
+                  "kind": "value",
+                  "value": "gpt-4o"
+                },
+                "kind": "positional_or_keyword",
+                "name": "model",
+                "required": false
+              },
+              {
+                "annotation": "int",
+                "default": {
+                  "kind": "value",
+                  "value": 50
+                },
+                "kind": "positional_or_keyword",
+                "name": "batch_size",
+                "required": false
+              }
+            ],
+            "return": "None"
+          }
+        },
+        {
+          "async": true,
+          "deprecation": {
+            "is_deprecated": false,
+            "message": null,
+            "replacement": null,
+            "since": null
+          },
+          "kind": "method",
+          "name": "reinforce",
+          "signature": {
+            "parameters": [
+              {
+                "annotation": "uuid.UUID",
+                "default": {
+                  "kind": "required"
+                },
+                "kind": "positional_or_keyword",
+                "name": "memory_id",
+                "required": true
+              },
+              {
+                "annotation": "bool",
+                "default": {
+                  "kind": "required"
+                },
+                "kind": "positional_or_keyword",
+                "name": "success",
+                "required": true
+              }
+            ],
+            "return": "experia.memory.models.Memory | None"
+          }
+        },
+        {
+          "async": true,
+          "deprecation": {
+            "is_deprecated": false,
+            "message": null,
+            "replacement": null,
+            "since": null
+          },
+          "kind": "method",
+          "name": "remember",
+          "signature": {
+            "parameters": [
+              {
+                "annotation": "str",
+                "default": {
+                  "kind": "required"
+                },
+                "kind": "positional_or_keyword",
+                "name": "content",
+                "required": true
+              },
+              {
+                "annotation": "experia.memory.models.MemoryType",
+                "default": {
+                  "kind": "value",
+                  "value": "fact"
+                },
+                "kind": "positional_or_keyword",
+                "name": "memory_type",
+                "required": false
+              }
+            ],
+            "return": "experia.memory.models.Memory"
+          }
+        },
+        {
+          "async": true,
+          "deprecation": {
+            "is_deprecated": false,
+            "message": null,
+            "replacement": null,
+            "since": null
+          },
+          "kind": "method",
+          "name": "retrieve_context",
+          "signature": {
+            "parameters": [
+              {
+                "annotation": "str",
+                "default": {
+                  "kind": "value",
+                  "value": ""
+                },
+                "kind": "positional_or_keyword",
+                "name": "query",
+                "required": false
+              },
+              {
+                "annotation": "int",
+                "default": {
+                  "kind": "value",
+                  "value": 5
+                },
+                "kind": "positional_or_keyword",
+                "name": "limit",
+                "required": false
+              }
+            ],
+            "return": "str"
+          }
+        },
+        {
+          "async": true,
+          "deprecation": {
+            "is_deprecated": false,
+            "message": null,
+            "replacement": null,
+            "since": null
+          },
+          "kind": "method",
+          "name": "shutdown",
+          "signature": {
+            "parameters": [
+              {
+                "annotation": "experia.core.work.ShutdownPolicy | str",
+                "default": {
+                  "kind": "value",
+                  "value": "drain"
+                },
+                "kind": "positional_or_keyword",
+                "name": "policy",
+                "required": false
+              }
+            ],
+            "return": "experia.core.work.ShutdownReport"
+          }
+        }
+      ],
+      "path": "experia.core.learner.Learner",
+      "signature": {
+        "parameters": [
+          {
+            "annotation": "experia.core.interfaces.MemoryStore",
+            "default": {
+              "kind": "required"
+            },
+            "kind": "positional_or_keyword",
+            "name": "store",
+            "required": true
+          },
+          {
+            "annotation": "experia.core.interfaces.Evaluator",
+            "default": {
+              "kind": "required"
+            },
+            "kind": "positional_or_keyword",
+            "name": "evaluator",
+            "required": true
+          },
+          {
+            "annotation": "experia.improvement.rules.RuleGenerator | None",
+            "default": {
+              "kind": "value",
+              "value": null
+            },
+            "kind": "positional_or_keyword",
+            "name": "rule_generator",
+            "required": false
+          },
+          {
+            "annotation": "experia.memory.embeddings.Embedder | None",
+            "default": {
+              "kind": "value",
+              "value": null
+            },
+            "kind": "positional_or_keyword",
+            "name": "embedder",
+            "required": false
+          },
+          {
+            "annotation": "str",
+            "default": {
+              "kind": "value",
+              "value": "default"
+            },
+            "kind": "positional_or_keyword",
+            "name": "agent_role",
+            "required": false
+          },
+          {
+            "annotation": "bool",
+            "default": {
+              "kind": "value",
+              "value": true
+            },
+            "kind": "positional_or_keyword",
+            "name": "background_evaluation",
+            "required": false
+          },
+          {
+            "annotation": "float",
+            "default": {
+              "kind": "value",
+              "value": 0.95
+            },
+            "kind": "positional_or_keyword",
+            "name": "dedup_threshold",
+            "required": false
+          },
+          {
+            "annotation": "typing.Literal['fallback', 'raise']",
+            "default": {
+              "kind": "value",
+              "value": "fallback"
+            },
+            "kind": "keyword_only",
+            "name": "embedding_failure",
+            "required": false
+          },
+          {
+            "annotation": "experia.security.protection.DataProtectionLayer | None",
+            "default": {
+              "kind": "value",
+              "value": null
+            },
+            "kind": "keyword_only",
+            "name": "data_protection",
+            "required": false
+          },
+          {
+            "annotation": "collections.abc.Callable[[<class 'experia.core.logging.LifecycleEvent'>], collections.abc.Awaitable[None] | None] | None",
+            "default": {
+              "kind": "value",
+              "value": null
+            },
+            "kind": "keyword_only",
+            "name": "lifecycle_observer",
+            "required": false
+          }
+        ],
+        "return": null
+      },
+      "target": "experia.core.learner.Learner"
+    },
+    {
+      "async": false,
+      "deprecation": {
+        "is_deprecated": false,
+        "message": null,
+        "replacement": null,
+        "since": null
+      },
+      "kind": "class",
+      "members": [
+        {
+          "async": true,
+          "deprecation": {
+            "is_deprecated": false,
+            "message": null,
+            "replacement": null,
+            "since": null
+          },
+          "kind": "method",
+          "name": "evaluate",
+          "signature": {
+            "parameters": [
+              {
+                "annotation": "experia.experience.models.ExperienceRecord",
+                "default": {
+                  "kind": "required"
+                },
+                "kind": "positional_or_keyword",
+                "name": "experience",
+                "required": true
+              }
+            ],
+            "return": "experia.experience.models.Lesson | None"
+          }
+        }
+      ],
+      "path": "experia.experience.evaluator.SimpleHeuristicEvaluator",
+      "signature": {
+        "parameters": [],
+        "return": "None"
+      },
+      "target": "experia.experience.evaluator.SimpleHeuristicEvaluator"
+    },
+    {
+      "async": false,
+      "deprecation": {
+        "is_deprecated": false,
+        "message": null,
+        "replacement": null,
+        "since": null
+      },
+      "kind": "class",
+      "members": [
+        {
+          "async": true,
+          "deprecation": {
+            "is_deprecated": false,
+            "message": null,
+            "replacement": null,
+            "since": null
+          },
+          "kind": "method",
+          "name": "evaluate",
+          "signature": {
+            "parameters": [
+              {
+                "annotation": "experia.experience.models.ExperienceRecord",
+                "default": {
+                  "kind": "required"
+                },
+                "kind": "positional_or_keyword",
+                "name": "experience",
+                "required": true
+              }
+            ],
+            "return": "experia.experience.models.Lesson | None"
+          }
+        }
+      ],
+      "path": "experia.experience.llm_evaluator.LLMEvaluator",
+      "signature": {
+        "parameters": [
+          {
+            "annotation": "str",
+            "default": {
+              "kind": "value",
+              "value": "gpt-4o"
+            },
+            "kind": "positional_or_keyword",
+            "name": "model",
+            "required": false
+          },
+          {
+            "annotation": "experia.security.protection.DataProtectionLayer | None",
+            "default": {
+              "kind": "value",
+              "value": null
+            },
+            "kind": "keyword_only",
+            "name": "data_protection",
+            "required": false
+          }
+        ],
+        "return": null
+      },
+      "target": "experia.experience.llm_evaluator.LLMEvaluator"
+    },
+    {
+      "async": false,
+      "deprecation": {
+        "is_deprecated": false,
+        "message": null,
+        "replacement": null,
+        "since": null
+      },
+      "kind": "class",
+      "members": [],
+      "path": "experia.experience.models.ExperienceRecord",
+      "signature": {
+        "parameters": [
+          {
+            "annotation": "uuid.UUID",
+            "default": {
+              "kind": "factory",
+              "path": "uuid.uuid4"
+            },
+            "kind": "keyword_only",
+            "name": "id",
+            "required": false
+          },
+          {
+            "annotation": "str",
+            "default": {
+              "kind": "required"
+            },
+            "kind": "keyword_only",
+            "name": "task",
+            "required": true
+          },
+          {
+            "annotation": "str",
+            "default": {
+              "kind": "required"
+            },
+            "kind": "keyword_only",
+            "name": "action",
+            "required": true
+          },
+          {
+            "annotation": "str",
+            "default": {
+              "kind": "required"
+            },
+            "kind": "keyword_only",
+            "name": "result",
+            "required": true
+          },
+          {
+            "annotation": "str",
+            "default": {
+              "kind": "value",
+              "value": "default"
+            },
+            "kind": "keyword_only",
+            "name": "agent_role",
+            "required": false
+          },
+          {
+            "annotation": "dict[str, typing.Any] | None",
+            "default": {
+              "kind": "factory",
+              "path": "builtins.dict"
+            },
+            "kind": "keyword_only",
+            "name": "context",
+            "required": false
+          },
+          {
+            "annotation": "datetime.datetime",
+            "default": {
+              "kind": "factory",
+              "path": "experia.experience.models.ExperienceRecord.<lambda>"
+            },
+            "kind": "keyword_only",
+            "name": "created_at",
+            "required": false
+          }
+        ],
+        "return": "None"
+      },
+      "target": "experia.experience.models.ExperienceRecord"
+    },
+    {
+      "async": false,
+      "deprecation": {
+        "is_deprecated": false,
+        "message": null,
+        "replacement": null,
+        "since": null
+      },
+      "kind": "class",
+      "members": [],
+      "path": "experia.experience.models.Lesson",
+      "signature": {
+        "parameters": [
+          {
+            "annotation": "uuid.UUID",
+            "default": {
+              "kind": "factory",
+              "path": "uuid.uuid4"
+            },
+            "kind": "keyword_only",
+            "name": "id",
+            "required": false
+          },
+          {
+            "annotation": "uuid.UUID",
+            "default": {
+              "kind": "required"
+            },
+            "kind": "keyword_only",
+            "name": "experience_id",
+            "required": true
+          },
+          {
+            "annotation": "str",
+            "default": {
+              "kind": "required"
+            },
+            "kind": "keyword_only",
+            "name": "content",
+            "required": true
+          },
+          {
+            "annotation": "str",
+            "default": {
+              "kind": "value",
+              "value": "default"
+            },
+            "kind": "keyword_only",
+            "name": "agent_role",
+            "required": false
+          },
+          {
+            "annotation": "str | None",
+            "default": {
+              "kind": "value",
+              "value": null
+            },
+            "kind": "keyword_only",
+            "name": "root_cause",
+            "required": false
+          },
+          {
+            "annotation": "float",
+            "default": {
+              "kind": "value",
+              "value": 0.8
+            },
+            "kind": "keyword_only",
+            "name": "confidence",
+            "required": false
+          },
+          {
+            "annotation": "datetime.datetime",
+            "default": {
+              "kind": "factory",
+              "path": "experia.experience.models.Lesson.<lambda>"
+            },
+            "kind": "keyword_only",
+            "name": "created_at",
+            "required": false
+          }
+        ],
+        "return": "None"
+      },
+      "target": "experia.experience.models.Lesson"
+    },
+    {
+      "async": false,
+      "deprecation": {
+        "is_deprecated": false,
+        "message": null,
+        "replacement": null,
+        "since": null
+      },
+      "kind": "class",
+      "members": [
+        {
+          "async": true,
+          "deprecation": {
+            "is_deprecated": false,
+            "message": null,
+            "replacement": null,
+            "since": null
+          },
+          "kind": "method",
+          "name": "consolidate_lesson",
+          "signature": {
+            "parameters": [
+              {
+                "annotation": "experia.experience.models.Lesson",
+                "default": {
+                  "kind": "required"
+                },
+                "kind": "positional_or_keyword",
+                "name": "lesson",
+                "required": true
+              }
+            ],
+            "return": "experia.memory.models.Memory | None"
+          }
+        }
+      ],
+      "path": "experia.improvement.rules.RuleGenerator",
+      "signature": {
+        "parameters": [
+          {
+            "annotation": "experia.core.interfaces.MemoryStore",
+            "default": {
+              "kind": "required"
+            },
+            "kind": "positional_or_keyword",
+            "name": "store",
+            "required": true
+          },
+          {
+            "annotation": "str",
+            "default": {
+              "kind": "value",
+              "value": "gpt-4o"
+            },
+            "kind": "positional_or_keyword",
+            "name": "model",
+            "required": false
+          },
+          {
+            "annotation": "experia.security.protection.DataProtectionLayer | None",
+            "default": {
+              "kind": "value",
+              "value": null
+            },
+            "kind": "keyword_only",
+            "name": "data_protection",
+            "required": false
+          }
+        ],
+        "return": null
+      },
+      "target": "experia.improvement.rules.RuleGenerator"
+    },
+    {
+      "async": false,
+      "deprecation": {
+        "is_deprecated": false,
+        "message": null,
+        "replacement": null,
+        "since": null
+      },
+      "kind": "class",
+      "members": [
+        {
+          "async": true,
+          "deprecation": {
+            "is_deprecated": false,
+            "message": null,
+            "replacement": null,
+            "since": null
+          },
+          "kind": "method",
+          "name": "on_chain_end",
+          "signature": {
+            "parameters": [
+              {
+                "annotation": "dict[str, typing.Any]",
+                "default": {
+                  "kind": "required"
+                },
+                "kind": "positional_or_keyword",
+                "name": "outputs",
+                "required": true
+              },
+              {
+                "annotation": "uuid.UUID",
+                "default": {
+                  "kind": "required"
+                },
+                "kind": "keyword_only",
+                "name": "run_id",
+                "required": true
+              },
+              {
+                "annotation": "uuid.UUID | None",
+                "default": {
+                  "kind": "value",
+                  "value": null
+                },
+                "kind": "keyword_only",
+                "name": "parent_run_id",
+                "required": false
+              },
+              {
+                "annotation": "typing.Any",
+                "default": {
+                  "kind": "variadic"
+                },
+                "kind": "var_keyword",
+                "name": "kwargs",
+                "required": false
+              }
+            ],
+            "return": "None"
+          }
+        },
+        {
+          "async": true,
+          "deprecation": {
+            "is_deprecated": false,
+            "message": null,
+            "replacement": null,
+            "since": null
+          },
+          "kind": "method",
+          "name": "on_chain_error",
+          "signature": {
+            "parameters": [
+              {
+                "annotation": "BaseException",
+                "default": {
+                  "kind": "required"
+                },
+                "kind": "positional_or_keyword",
+                "name": "error",
+                "required": true
+              },
+              {
+                "annotation": "uuid.UUID",
+                "default": {
+                  "kind": "required"
+                },
+                "kind": "keyword_only",
+                "name": "run_id",
+                "required": true
+              },
+              {
+                "annotation": "uuid.UUID | None",
+                "default": {
+                  "kind": "value",
+                  "value": null
+                },
+                "kind": "keyword_only",
+                "name": "parent_run_id",
+                "required": false
+              },
+              {
+                "annotation": "typing.Any",
+                "default": {
+                  "kind": "variadic"
+                },
+                "kind": "var_keyword",
+                "name": "kwargs",
+                "required": false
+              }
+            ],
+            "return": "None"
+          }
+        },
+        {
+          "async": true,
+          "deprecation": {
+            "is_deprecated": false,
+            "message": null,
+            "replacement": null,
+            "since": null
+          },
+          "kind": "method",
+          "name": "on_chain_start",
+          "signature": {
+            "parameters": [
+              {
+                "annotation": "dict[str, typing.Any]",
+                "default": {
+                  "kind": "required"
+                },
+                "kind": "positional_or_keyword",
+                "name": "serialized",
+                "required": true
+              },
+              {
+                "annotation": "dict[str, typing.Any]",
+                "default": {
+                  "kind": "required"
+                },
+                "kind": "positional_or_keyword",
+                "name": "inputs",
+                "required": true
+              },
+              {
+                "annotation": "uuid.UUID",
+                "default": {
+                  "kind": "required"
+                },
+                "kind": "keyword_only",
+                "name": "run_id",
+                "required": true
+              },
+              {
+                "annotation": "uuid.UUID | None",
+                "default": {
+                  "kind": "value",
+                  "value": null
+                },
+                "kind": "keyword_only",
+                "name": "parent_run_id",
+                "required": false
+              },
+              {
+                "annotation": "list[str] | None",
+                "default": {
+                  "kind": "value",
+                  "value": null
+                },
+                "kind": "keyword_only",
+                "name": "tags",
+                "required": false
+              },
+              {
+                "annotation": "dict[str, typing.Any] | None",
+                "default": {
+                  "kind": "value",
+                  "value": null
+                },
+                "kind": "keyword_only",
+                "name": "metadata",
+                "required": false
+              },
+              {
+                "annotation": "typing.Any",
+                "default": {
+                  "kind": "variadic"
+                },
+                "kind": "var_keyword",
+                "name": "kwargs",
+                "required": false
+              }
+            ],
+            "return": "None"
+          }
+        },
+        {
+          "async": true,
+          "deprecation": {
+            "is_deprecated": false,
+            "message": null,
+            "replacement": null,
+            "since": null
+          },
+          "kind": "method",
+          "name": "on_tool_end",
+          "signature": {
+            "parameters": [
+              {
+                "annotation": "typing.Any",
+                "default": {
+                  "kind": "required"
+                },
+                "kind": "positional_or_keyword",
+                "name": "output",
+                "required": true
+              },
+              {
+                "annotation": "uuid.UUID",
+                "default": {
+                  "kind": "required"
+                },
+                "kind": "keyword_only",
+                "name": "run_id",
+                "required": true
+              },
+              {
+                "annotation": "uuid.UUID | None",
+                "default": {
+                  "kind": "value",
+                  "value": null
+                },
+                "kind": "keyword_only",
+                "name": "parent_run_id",
+                "required": false
+              },
+              {
+                "annotation": "typing.Any",
+                "default": {
+                  "kind": "variadic"
+                },
+                "kind": "var_keyword",
+                "name": "kwargs",
+                "required": false
+              }
+            ],
+            "return": "None"
+          }
+        },
+        {
+          "async": true,
+          "deprecation": {
+            "is_deprecated": false,
+            "message": null,
+            "replacement": null,
+            "since": null
+          },
+          "kind": "method",
+          "name": "on_tool_error",
+          "signature": {
+            "parameters": [
+              {
+                "annotation": "BaseException",
+                "default": {
+                  "kind": "required"
+                },
+                "kind": "positional_or_keyword",
+                "name": "error",
+                "required": true
+              },
+              {
+                "annotation": "uuid.UUID",
+                "default": {
+                  "kind": "required"
+                },
+                "kind": "keyword_only",
+                "name": "run_id",
+                "required": true
+              },
+              {
+                "annotation": "uuid.UUID | None",
+                "default": {
+                  "kind": "value",
+                  "value": null
+                },
+                "kind": "keyword_only",
+                "name": "parent_run_id",
+                "required": false
+              },
+              {
+                "annotation": "typing.Any",
+                "default": {
+                  "kind": "variadic"
+                },
+                "kind": "var_keyword",
+                "name": "kwargs",
+                "required": false
+              }
+            ],
+            "return": "None"
+          }
+        },
+        {
+          "async": true,
+          "deprecation": {
+            "is_deprecated": false,
+            "message": null,
+            "replacement": null,
+            "since": null
+          },
+          "kind": "method",
+          "name": "on_tool_start",
+          "signature": {
+            "parameters": [
+              {
+                "annotation": "dict[str, typing.Any]",
+                "default": {
+                  "kind": "required"
+                },
+                "kind": "positional_or_keyword",
+                "name": "serialized",
+                "required": true
+              },
+              {
+                "annotation": "str",
+                "default": {
+                  "kind": "required"
+                },
+                "kind": "positional_or_keyword",
+                "name": "input_str",
+                "required": true
+              },
+              {
+                "annotation": "uuid.UUID",
+                "default": {
+                  "kind": "required"
+                },
+                "kind": "keyword_only",
+                "name": "run_id",
+                "required": true
+              },
+              {
+                "annotation": "uuid.UUID | None",
+                "default": {
+                  "kind": "value",
+                  "value": null
+                },
+                "kind": "keyword_only",
+                "name": "parent_run_id",
+                "required": false
+              },
+              {
+                "annotation": "list[str] | None",
+                "default": {
+                  "kind": "value",
+                  "value": null
+                },
+                "kind": "keyword_only",
+                "name": "tags",
+                "required": false
+              },
+              {
+                "annotation": "dict[str, typing.Any] | None",
+                "default": {
+                  "kind": "value",
+                  "value": null
+                },
+                "kind": "keyword_only",
+                "name": "metadata",
+                "required": false
+              },
+              {
+                "annotation": "dict[str, typing.Any] | None",
+                "default": {
+                  "kind": "value",
+                  "value": null
+                },
+                "kind": "keyword_only",
+                "name": "inputs",
+                "required": false
+              },
+              {
+                "annotation": "typing.Any",
+                "default": {
+                  "kind": "variadic"
+                },
+                "kind": "var_keyword",
+                "name": "kwargs",
+                "required": false
+              }
+            ],
+            "return": "None"
+          }
+        }
+      ],
+      "path": "experia.integrations.langchain.callbacks.ExperiaCallbackHandler",
+      "signature": {
+        "parameters": [
+          {
+            "annotation": "experia.core.learner.Learner",
+            "default": {
+              "kind": "required"
+            },
+            "kind": "positional_or_keyword",
+            "name": "agent",
+            "required": true
+          },
+          {
+            "annotation": "typing.Literal['background', 'durable']",
+            "default": {
+              "kind": "value",
+              "value": "background"
+            },
+            "kind": "keyword_only",
+            "name": "callback_mode",
+            "required": false
+          }
+        ],
+        "return": null
+      },
+      "target": "experia.integrations.langchain.callbacks.ExperiaCallbackHandler"
+    },
+    {
+      "async": false,
+      "deprecation": {
+        "is_deprecated": false,
+        "message": null,
+        "replacement": null,
+        "since": null
+      },
+      "kind": "class",
+      "members": [
+        {
+          "async": true,
+          "deprecation": {
+            "is_deprecated": false,
+            "message": null,
+            "replacement": null,
+            "since": null
+          },
+          "kind": "method",
+          "name": "_aget_relevant_documents",
+          "signature": {
+            "parameters": [
+              {
+                "annotation": "str",
+                "default": {
+                  "kind": "required"
+                },
+                "kind": "positional_or_keyword",
+                "name": "query",
+                "required": true
+              },
+              {
+                "annotation": "langchain_core.callbacks.manager.AsyncCallbackManagerForRetrieverRun",
+                "default": {
+                  "kind": "required"
+                },
+                "kind": "keyword_only",
+                "name": "run_manager",
+                "required": true
+              }
+            ],
+            "return": "list[langchain_core.documents.base.Document]"
+          }
+        },
+        {
+          "async": false,
+          "deprecation": {
+            "is_deprecated": false,
+            "message": null,
+            "replacement": null,
+            "since": null
+          },
+          "kind": "method",
+          "name": "_get_relevant_documents",
+          "signature": {
+            "parameters": [
+              {
+                "annotation": "str",
+                "default": {
+                  "kind": "required"
+                },
+                "kind": "positional_or_keyword",
+                "name": "query",
+                "required": true
+              },
+              {
+                "annotation": "langchain_core.callbacks.manager.CallbackManagerForRetrieverRun",
+                "default": {
+                  "kind": "required"
+                },
+                "kind": "keyword_only",
+                "name": "run_manager",
+                "required": true
+              }
+            ],
+            "return": "list[langchain_core.documents.base.Document]"
+          }
+        }
+      ],
+      "path": "experia.integrations.langchain.retrievers.ExperiaLearningRetriever",
+      "signature": {
+        "parameters": [
+          {
+            "annotation": "typing.Any",
+            "default": {
+              "kind": "variadic"
+            },
+            "kind": "var_positional",
+            "name": "args",
+            "required": false
+          },
+          {
+            "annotation": "str | None",
+            "default": {
+              "kind": "value",
+              "value": null
+            },
+            "kind": "keyword_only",
+            "name": "name",
+            "required": false
+          },
+          {
+            "annotation": "list[str] | None",
+            "default": {
+              "kind": "value",
+              "value": null
+            },
+            "kind": "keyword_only",
+            "name": "tags",
+            "required": false
+          },
+          {
+            "annotation": "dict[str, typing.Any] | None",
+            "default": {
+              "kind": "value",
+              "value": null
+            },
+            "kind": "keyword_only",
+            "name": "metadata",
+            "required": false
+          },
+          {
+            "annotation": "experia.core.learner.Learner",
+            "default": {
+              "kind": "required"
+            },
+            "kind": "keyword_only",
+            "name": "agent",
+            "required": true
+          },
+          {
+            "annotation": "int",
+            "default": {
+              "kind": "value",
+              "value": 5
+            },
+            "kind": "keyword_only",
+            "name": "limit",
+            "required": false
+          }
+        ],
+        "return": "None"
+      },
+      "target": "experia.integrations.langchain.retrievers.ExperiaLearningRetriever"
+    },
+    {
+      "async": false,
+      "deprecation": {
+        "is_deprecated": false,
+        "message": null,
+        "replacement": null,
+        "since": null
+      },
+      "kind": "class",
+      "members": [
+        {
+          "async": true,
+          "deprecation": {
+            "is_deprecated": false,
+            "message": null,
+            "replacement": null,
+            "since": null
+          },
+          "kind": "method",
+          "name": "__call__",
+          "signature": {
+            "parameters": [
+              {
+                "annotation": "dict[str, typing.Any]",
+                "default": {
+                  "kind": "required"
+                },
+                "kind": "positional_or_keyword",
+                "name": "state",
+                "required": true
+              }
+            ],
+            "return": "dict[str, typing.Any]"
+          }
+        }
+      ],
+      "path": "experia.integrations.langgraph.nodes.ExperiaContextNode",
+      "signature": {
+        "parameters": [
+          {
+            "annotation": "experia.core.learner.Learner",
+            "default": {
+              "kind": "required"
+            },
+            "kind": "positional_or_keyword",
+            "name": "agent",
+            "required": true
+          },
+          {
+            "annotation": "int",
+            "default": {
+              "kind": "value",
+              "value": 5
+            },
+            "kind": "positional_or_keyword",
+            "name": "limit",
+            "required": false
+          }
+        ],
+        "return": null
+      },
+      "target": "experia.integrations.langgraph.nodes.ExperiaContextNode"
+    },
+    {
+      "async": false,
+      "deprecation": {
+        "is_deprecated": false,
+        "message": null,
+        "replacement": null,
+        "since": null
+      },
+      "kind": "class",
+      "members": [
+        {
+          "async": true,
+          "deprecation": {
+            "is_deprecated": false,
+            "message": null,
+            "replacement": null,
+            "since": null
+          },
+          "kind": "method",
+          "name": "__call__",
+          "signature": {
+            "parameters": [
+              {
+                "annotation": "dict[str, typing.Any]",
+                "default": {
+                  "kind": "required"
+                },
+                "kind": "positional_or_keyword",
+                "name": "state",
+                "required": true
+              }
+            ],
+            "return": "dict[str, typing.Any]"
+          }
+        }
+      ],
+      "path": "experia.integrations.langgraph.nodes.ExperiaLearningNode",
+      "signature": {
+        "parameters": [
+          {
+            "annotation": "experia.core.learner.Learner",
+            "default": {
+              "kind": "required"
+            },
+            "kind": "positional_or_keyword",
+            "name": "agent",
+            "required": true
+          },
+          {
+            "annotation": "collections.abc.Callable[[Dict[str, Any]], dict[str, str] | None] | None",
+            "default": {
+              "kind": "value",
+              "value": null
+            },
+            "kind": "positional_or_keyword",
+            "name": "extractor",
+            "required": false
+          },
+          {
+            "annotation": "typing.Literal['background', 'durable']",
+            "default": {
+              "kind": "value",
+              "value": "background"
+            },
+            "kind": "keyword_only",
+            "name": "callback_mode",
+            "required": false
+          }
+        ],
+        "return": null
+      },
+      "target": "experia.integrations.langgraph.nodes.ExperiaLearningNode"
+    },
+    {
+      "async": false,
+      "deprecation": {
+        "is_deprecated": false,
+        "message": null,
+        "replacement": null,
+        "since": null
+      },
+      "kind": "protocol",
+      "members": [
+        {
+          "async": true,
+          "deprecation": {
+            "is_deprecated": false,
+            "message": null,
+            "replacement": null,
+            "since": null
+          },
+          "kind": "method",
+          "name": "embed",
+          "signature": {
+            "parameters": [
+              {
+                "annotation": "list[str]",
+                "default": {
+                  "kind": "required"
+                },
+                "kind": "positional_or_keyword",
+                "name": "texts",
+                "required": true
+              }
+            ],
+            "return": "list[list[float]]"
+          }
+        },
+        {
+          "async": true,
+          "deprecation": {
+            "is_deprecated": false,
+            "message": null,
+            "replacement": null,
+            "since": null
+          },
+          "kind": "method",
+          "name": "embed_one",
+          "signature": {
+            "parameters": [
+              {
+                "annotation": "str",
+                "default": {
+                  "kind": "required"
+                },
+                "kind": "positional_or_keyword",
+                "name": "text",
+                "required": true
+              }
+            ],
+            "return": "list[float]"
+          }
+        }
+      ],
+      "path": "experia.memory.embeddings.Embedder",
+      "signature": {
+        "parameters": [
+          {
+            "annotation": null,
+            "default": {
+              "kind": "variadic"
+            },
+            "kind": "var_positional",
+            "name": "args",
+            "required": false
+          },
+          {
+            "annotation": null,
+            "default": {
+              "kind": "variadic"
+            },
+            "kind": "var_keyword",
+            "name": "kwargs",
+            "required": false
+          }
+        ],
+        "return": null
+      },
+      "target": "experia.memory.embeddings.Embedder"
+    },
+    {
+      "async": false,
+      "deprecation": {
+        "is_deprecated": false,
+        "message": null,
+        "replacement": null,
+        "since": null
+      },
+      "kind": "class",
+      "members": [
+        {
+          "async": true,
+          "deprecation": {
+            "is_deprecated": false,
+            "message": null,
+            "replacement": null,
+            "since": null
+          },
+          "kind": "method",
+          "name": "embed",
+          "signature": {
+            "parameters": [
+              {
+                "annotation": "list[str]",
+                "default": {
+                  "kind": "required"
+                },
+                "kind": "positional_or_keyword",
+                "name": "texts",
+                "required": true
+              }
+            ],
+            "return": "list[list[float]]"
+          }
+        },
+        {
+          "async": true,
+          "deprecation": {
+            "is_deprecated": false,
+            "message": null,
+            "replacement": null,
+            "since": null
+          },
+          "kind": "method",
+          "name": "embed_one",
+          "signature": {
+            "parameters": [
+              {
+                "annotation": "str",
+                "default": {
+                  "kind": "required"
+                },
+                "kind": "positional_or_keyword",
+                "name": "text",
+                "required": true
+              }
+            ],
+            "return": "list[float]"
+          }
+        }
+      ],
+      "path": "experia.memory.embeddings.LiteLLMEmbedder",
+      "signature": {
+        "parameters": [
+          {
+            "annotation": "str",
+            "default": {
+              "kind": "value",
+              "value": "text-embedding-3-small"
+            },
+            "kind": "positional_or_keyword",
+            "name": "model",
+            "required": false
+          },
+          {
+            "annotation": "experia.security.protection.DataProtectionLayer | None",
+            "default": {
+              "kind": "value",
+              "value": null
+            },
+            "kind": "keyword_only",
+            "name": "data_protection",
+            "required": false
+          }
+        ],
+        "return": null
+      },
+      "target": "experia.memory.embeddings.LiteLLMEmbedder"
+    },
+    {
+      "async": false,
+      "deprecation": {
+        "is_deprecated": false,
+        "message": null,
+        "replacement": null,
+        "since": null
+      },
+      "kind": "class",
+      "members": [],
+      "path": "experia.memory.models.Memory",
+      "signature": {
+        "parameters": [
+          {
+            "annotation": "uuid.UUID",
+            "default": {
+              "kind": "factory",
+              "path": "uuid.uuid4"
+            },
+            "kind": "keyword_only",
+            "name": "id",
+            "required": false
+          },
+          {
+            "annotation": "str",
+            "default": {
+              "kind": "required"
+            },
+            "kind": "keyword_only",
+            "name": "content",
+            "required": true
+          },
+          {
+            "annotation": "experia.memory.models.MemoryType",
+            "default": {
+              "kind": "required"
+            },
+            "kind": "keyword_only",
+            "name": "type",
+            "required": true
+          },
+          {
+            "annotation": "str",
+            "default": {
+              "kind": "value",
+              "value": "default"
+            },
+            "kind": "keyword_only",
+            "name": "agent_role",
+            "required": false
+          },
+          {
+            "annotation": "float",
+            "default": {
+              "kind": "value",
+              "value": 0.8
+            },
+            "kind": "keyword_only",
+            "name": "confidence",
+            "required": false
+          },
+          {
+            "annotation": "float",
+            "default": {
+              "kind": "value",
+              "value": 0.5
+            },
+            "kind": "keyword_only",
+            "name": "importance",
+            "required": false
+          },
+          {
+            "annotation": "str | None",
+            "default": {
+              "kind": "value",
+              "value": null
+            },
+            "kind": "keyword_only",
+            "name": "source",
+            "required": false
+          },
+          {
+            "annotation": "dict[str, typing.Any] | None",
+            "default": {
+              "kind": "factory",
+              "path": "builtins.dict"
+            },
+            "kind": "keyword_only",
+            "name": "metadata",
+            "required": false
+          },
+          {
+            "annotation": "datetime.datetime",
+            "default": {
+              "kind": "factory",
+              "path": "experia.memory.models.Memory.<lambda>"
+            },
+            "kind": "keyword_only",
+            "name": "created_at",
+            "required": false
+          },
+          {
+            "annotation": "datetime.datetime",
+            "default": {
+              "kind": "factory",
+              "path": "experia.memory.models.Memory.<lambda>"
+            },
+            "kind": "keyword_only",
+            "name": "updated_at",
+            "required": false
+          },
+          {
+            "annotation": "datetime.datetime | None",
+            "default": {
+              "kind": "value",
+              "value": null
+            },
+            "kind": "keyword_only",
+            "name": "expires_at",
+            "required": false
+          },
+          {
+            "annotation": "int",
+            "default": {
+              "kind": "value",
+              "value": 0
+            },
+            "kind": "keyword_only",
+            "name": "reinforcement_count",
+            "required": false
+          },
+          {
+            "annotation": "int",
+            "default": {
+              "kind": "value",
+              "value": 0
+            },
+            "kind": "keyword_only",
+            "name": "success_count",
+            "required": false
+          },
+          {
+            "annotation": "list[float] | None",
+            "default": {
+              "kind": "value",
+              "value": null
+            },
+            "kind": "keyword_only",
+            "name": "embedding",
+            "required": false
+          }
+        ],
+        "return": "None"
+      },
+      "target": "experia.memory.models.Memory"
+    },
+    {
+      "async": false,
+      "deprecation": {
+        "is_deprecated": false,
+        "message": null,
+        "replacement": null,
+        "since": null
+      },
+      "kind": "enum",
+      "members": [],
+      "path": "experia.memory.models.MemoryType",
+      "signature": null,
+      "target": "experia.memory.models.MemoryType",
+      "values": [
+        {
+          "name": "FACT",
+          "value": "fact"
+        },
+        {
+          "name": "PREFERENCE",
+          "value": "preference"
+        },
+        {
+          "name": "LESSON",
+          "value": "lesson"
+        },
+        {
+          "name": "RULE",
+          "value": "rule"
+        },
+        {
+          "name": "STRATEGY",
+          "value": "strategy"
+        },
+        {
+          "name": "EXPERIENCE",
+          "value": "experience"
+        }
+      ]
+    },
+    {
+      "async": false,
+      "deprecation": {
+        "is_deprecated": false,
+        "message": null,
+        "replacement": null,
+        "since": null
+      },
+      "kind": "class",
+      "members": [
+        {
+          "async": true,
+          "deprecation": {
+            "is_deprecated": false,
+            "message": null,
+            "replacement": null,
+            "since": null
+          },
+          "kind": "method",
+          "name": "close",
+          "signature": {
+            "parameters": [],
+            "return": "None"
+          }
+        },
+        {
+          "async": true,
+          "deprecation": {
+            "is_deprecated": false,
+            "message": null,
+            "replacement": null,
+            "since": null
+          },
+          "kind": "method",
+          "name": "find_similar_memory",
+          "signature": {
+            "parameters": [
+              {
+                "annotation": "list[float]",
+                "default": {
+                  "kind": "required"
+                },
+                "kind": "positional_or_keyword",
+                "name": "embedding",
+                "required": true
+              },
+              {
+                "annotation": "experia.memory.models.MemoryType | None",
+                "default": {
+                  "kind": "value",
+                  "value": null
+                },
+                "kind": "positional_or_keyword",
+                "name": "memory_type",
+                "required": false
+              },
+              {
+                "annotation": "str | None",
+                "default": {
+                  "kind": "value",
+                  "value": null
+                },
+                "kind": "positional_or_keyword",
+                "name": "agent_role",
+                "required": false
+              },
+              {
+                "annotation": "float",
+                "default": {
+                  "kind": "value",
+                  "value": 0.95
+                },
+                "kind": "positional_or_keyword",
+                "name": "threshold",
+                "required": false
+              }
+            ],
+            "return": "experia.memory.models.Memory | None"
+          }
+        },
+        {
+          "async": true,
+          "deprecation": {
+            "is_deprecated": false,
+            "message": null,
+            "replacement": null,
+            "since": null
+          },
+          "kind": "method",
+          "name": "get_experience",
+          "signature": {
+            "parameters": [
+              {
+                "annotation": "uuid.UUID",
+                "default": {
+                  "kind": "required"
+                },
+                "kind": "positional_or_keyword",
+                "name": "experience_id",
+                "required": true
+              }
+            ],
+            "return": "experia.experience.models.ExperienceRecord | None"
+          }
+        },
+        {
+          "async": true,
+          "deprecation": {
+            "is_deprecated": false,
+            "message": null,
+            "replacement": null,
+            "since": null
+          },
+          "kind": "method",
+          "name": "get_memory",
+          "signature": {
+            "parameters": [
+              {
+                "annotation": "uuid.UUID",
+                "default": {
+                  "kind": "required"
+                },
+                "kind": "positional_or_keyword",
+                "name": "memory_id",
+                "required": true
+              }
+            ],
+            "return": "experia.memory.models.Memory | None"
+          }
+        },
+        {
+          "async": true,
+          "deprecation": {
+            "is_deprecated": false,
+            "message": null,
+            "replacement": null,
+            "since": null
+          },
+          "kind": "method",
+          "name": "get_recent_experiences",
+          "signature": {
+            "parameters": [
+              {
+                "annotation": "int",
+                "default": {
+                  "kind": "value",
+                  "value": 50
+                },
+                "kind": "positional_or_keyword",
+                "name": "limit",
+                "required": false
+              }
+            ],
+            "return": "list[experia.experience.models.ExperienceRecord]"
+          }
+        },
+        {
+          "async": true,
+          "deprecation": {
+            "is_deprecated": false,
+            "message": null,
+            "replacement": null,
+            "since": null
+          },
+          "kind": "method",
+          "name": "initialize",
+          "signature": {
+            "parameters": [],
+            "return": "None"
+          }
+        },
+        {
+          "async": true,
+          "deprecation": {
+            "is_deprecated": false,
+            "message": null,
+            "replacement": null,
+            "since": null
+          },
+          "kind": "method",
+          "name": "prune_expired",
+          "signature": {
+            "parameters": [],
+            "return": "int"
+          }
+        },
+        {
+          "async": true,
+          "deprecation": {
+            "is_deprecated": false,
+            "message": null,
+            "replacement": null,
+            "since": null
+          },
+          "kind": "method",
+          "name": "save_experience",
+          "signature": {
+            "parameters": [
+              {
+                "annotation": "experia.experience.models.ExperienceRecord",
+                "default": {
+                  "kind": "required"
+                },
+                "kind": "positional_or_keyword",
+                "name": "experience",
+                "required": true
+              }
+            ],
+            "return": "None"
+          }
+        },
+        {
+          "async": true,
+          "deprecation": {
+            "is_deprecated": false,
+            "message": null,
+            "replacement": null,
+            "since": null
+          },
+          "kind": "method",
+          "name": "save_lesson",
+          "signature": {
+            "parameters": [
+              {
+                "annotation": "experia.experience.models.Lesson",
+                "default": {
+                  "kind": "required"
+                },
+                "kind": "positional_or_keyword",
+                "name": "lesson",
+                "required": true
+              }
+            ],
+            "return": "None"
+          }
+        },
+        {
+          "async": true,
+          "deprecation": {
+            "is_deprecated": false,
+            "message": null,
+            "replacement": null,
+            "since": null
+          },
+          "kind": "method",
+          "name": "save_lesson_and_memory",
+          "signature": {
+            "parameters": [
+              {
+                "annotation": "experia.experience.models.Lesson",
+                "default": {
+                  "kind": "required"
+                },
+                "kind": "positional_or_keyword",
+                "name": "lesson",
+                "required": true
+              },
+              {
+                "annotation": "experia.memory.models.Memory",
+                "default": {
+                  "kind": "required"
+                },
+                "kind": "positional_or_keyword",
+                "name": "memory",
+                "required": true
+              }
+            ],
+            "return": "None"
+          }
+        },
+        {
+          "async": true,
+          "deprecation": {
+            "is_deprecated": false,
+            "message": null,
+            "replacement": null,
+            "since": null
+          },
+          "kind": "method",
+          "name": "save_memory",
+          "signature": {
+            "parameters": [
+              {
+                "annotation": "experia.memory.models.Memory",
+                "default": {
+                  "kind": "required"
+                },
+                "kind": "positional_or_keyword",
+                "name": "memory",
+                "required": true
+              }
+            ],
+            "return": "None"
+          }
+        },
+        {
+          "async": true,
+          "deprecation": {
+            "is_deprecated": false,
+            "message": null,
+            "replacement": null,
+            "since": null
+          },
+          "kind": "method",
+          "name": "search_memories",
+          "signature": {
+            "parameters": [
+              {
+                "annotation": "str",
+                "default": {
+                  "kind": "value",
+                  "value": ""
+                },
+                "kind": "positional_or_keyword",
+                "name": "query",
+                "required": false
+              },
+              {
+                "annotation": "experia.memory.models.MemoryType | None",
+                "default": {
+                  "kind": "value",
+                  "value": null
+                },
+                "kind": "positional_or_keyword",
+                "name": "memory_type",
+                "required": false
+              },
+              {
+                "annotation": "str | None",
+                "default": {
+                  "kind": "value",
+                  "value": null
+                },
+                "kind": "positional_or_keyword",
+                "name": "agent_role",
+                "required": false
+              },
+              {
+                "annotation": "int",
+                "default": {
+                  "kind": "value",
+                  "value": 10
+                },
+                "kind": "positional_or_keyword",
+                "name": "limit",
+                "required": false
+              },
+              {
+                "annotation": "list[float] | None",
+                "default": {
+                  "kind": "value",
+                  "value": null
+                },
+                "kind": "positional_or_keyword",
+                "name": "query_embedding",
+                "required": false
+              },
+              {
+                "annotation": "bool",
+                "default": {
+                  "kind": "value",
+                  "value": false
+                },
+                "kind": "positional_or_keyword",
+                "name": "include_expired",
+                "required": false
+              }
+            ],
+            "return": "list[experia.memory.models.Memory]"
+          }
+        },
+        {
+          "async": true,
+          "deprecation": {
+            "is_deprecated": false,
+            "message": null,
+            "replacement": null,
+            "since": null
+          },
+          "kind": "method",
+          "name": "update_memory_feedback",
+          "signature": {
+            "parameters": [
+              {
+                "annotation": "uuid.UUID",
+                "default": {
+                  "kind": "required"
+                },
+                "kind": "positional_or_keyword",
+                "name": "memory_id",
+                "required": true
+              },
+              {
+                "annotation": "bool",
+                "default": {
+                  "kind": "required"
+                },
+                "kind": "positional_or_keyword",
+                "name": "success",
+                "required": true
+              },
+              {
+                "annotation": "float",
+                "default": {
+                  "kind": "value",
+                  "value": 0.2
+                },
+                "kind": "positional_or_keyword",
+                "name": "alpha",
+                "required": false
+              }
+            ],
+            "return": "experia.memory.models.Memory | None"
+          }
+        }
+      ],
+      "path": "experia.memory.store.SQLiteStore",
+      "signature": {
+        "parameters": [
+          {
+            "annotation": "str",
+            "default": {
+              "kind": "value",
+              "value": "experia.db"
+            },
+            "kind": "positional_or_keyword",
+            "name": "db_path",
+            "required": false
+          }
+        ],
+        "return": null
+      },
+      "target": "experia.memory.store.SQLiteStore"
+    }
+  ],
+  "major_version": 0,
+  "package": "experia",
+  "package_version": "0.7.0",
+  "schema_version": 1
+}

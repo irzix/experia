@@ -1,0 +1,93 @@
+{
+  "schema_version": 1,
+  "package": "experia",
+  "examples": [
+    {
+      "id": "offline-quickstart",
+      "path": "examples/quickstart.py",
+      "extras": [],
+      "documentation": [
+        "README.md",
+        "API_REFERENCE.md"
+      ]
+    },
+    {
+      "id": "llm-extra-constructors",
+      "path": "examples/llm_extra.py",
+      "extras": [
+        "llm"
+      ],
+      "documentation": [
+        "README.md",
+        "API_REFERENCE.md"
+      ]
+    },
+    {
+      "id": "langchain-extra-constructors",
+      "path": "examples/langchain_extra.py",
+      "extras": [
+        "langchain"
+      ],
+      "documentation": [
+        "README.md",
+        "API_REFERENCE.md"
+      ]
+    },
+    {
+      "id": "langgraph-extra-constructors",
+      "path": "examples/langgraph_extra.py",
+      "extras": [
+        "langgraph"
+      ],
+      "documentation": [
+        "README.md",
+        "API_REFERENCE.md"
+      ]
+    }
+  ],
+  "extra_imports": [
+    {
+      "extra": "llm",
+      "dependency_imports": [
+        "litellm"
+      ],
+      "public_imports": [
+        "experia.experience.llm_evaluator.LLMEvaluator",
+        "experia.LiteLLMEmbedder",
+        "experia.improvement.rules.RuleGenerator"
+      ],
+      "documentation": [
+        "README.md",
+        "API_REFERENCE.md"
+      ]
+    },
+    {
+      "extra": "langchain",
+      "dependency_imports": [
+        "langchain_core"
+      ],
+      "public_imports": [
+        "experia.integrations.langchain.callbacks.ExperiaCallbackHandler",
+        "experia.integrations.langchain.retrievers.ExperiaLearningRetriever"
+      ],
+      "documentation": [
+        "README.md",
+        "API_REFERENCE.md"
+      ]
+    },
+    {
+      "extra": "langgraph",
+      "dependency_imports": [
+        "langgraph"
+      ],
+      "public_imports": [
+        "experia.integrations.langgraph.nodes.ExperiaContextNode",
+        "experia.integrations.langgraph.nodes.ExperiaLearningNode"
+      ],
+      "documentation": [
+        "README.md",
+        "API_REFERENCE.md"
+      ]
+    }
+  ]
+}
