@@ -18,28 +18,37 @@ Experia uses modern Python tooling. To get started:
    source .venv/bin/activate
    ```
 
-3. **Install dependencies (including dev and LLM tools):**
-   ```bash
-   pip install -e ".[dev,llm]"
-   ```
+3. **Install the development dependencies from the fresh checkout.** These are the only setup commands you need. They are credential-free and are the exact commands every supported Python version (3.10, 3.11, and 3.12) runs in CI, so there are no hidden setup steps:
 
-## Code Style and Formatting
-
-We use [Ruff](https://docs.astral.sh/ruff/) for extremely fast linting and code formatting.
-
-Before committing, please run:
+<!-- BEGIN SETUP COMMANDS -->
 ```bash
-ruff format .
-ruff check --fix .
+python -m pip install --upgrade pip
+python -m pip install -e ".[dev]"
 ```
+<!-- END SETUP COMMANDS -->
 
-## Running Tests
+The `[dev]` extra installs every tool the Quality Gate uses (ruff, pytest, coverage, and the build backend), so no further installation is required.
 
-We use `pytest` for testing. Tests that require LLM API calls are mocked using `unittest.mock.AsyncMock` so that you do not need an active API key or internet connection to run the test suite.
+## Quality Gate
 
-To run all tests:
+The required local checks are the same credential-free commands run for every supported Python version in CI. Run them from the repository root after activating the virtual environment:
+
+<!-- BEGIN QUALITY GATE COMMANDS -->
 ```bash
-pytest
+python -m ruff check .
+python -m ruff format --check .
+python -m pytest
+python scripts/coverage_gate.py .coverage.granular.json
+python scripts/artifact_gate.py --output-dir dist/quality-gate
+```
+<!-- END QUALITY GATE COMMANDS -->
+
+The artifact gate builds the wheel and source distribution, installs the wheel in a clean environment, and smoke-tests it outside the source tree. No command requires an API key or external service credential.
+
+To apply formatting before rerunning the gate:
+
+```bash
+python -m ruff format .
 ```
 
 ## Making a Pull Request (PR)
