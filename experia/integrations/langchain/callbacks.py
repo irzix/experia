@@ -4,12 +4,17 @@ from uuid import UUID
 try:
     from langchain_core.callbacks import AsyncCallbackHandler
 except ImportError:
-    # Fallback for type checking if langchain is not installed
+    _LANGCHAIN_AVAILABLE = False
+
     class AsyncCallbackHandler:
         pass
+else:
+    _LANGCHAIN_AVAILABLE = True
 
 
+from experia.core.dependencies import require_optional_dependency
 from experia.core.learner import Learner
+from experia.integrations._dispatch import CallbackMode
 from experia.integrations.langchain.builder import ExperienceBuilder
 
 
@@ -20,9 +25,20 @@ class ExperiaCallbackHandler(AsyncCallbackHandler):
     which compiles cohesive experiences and records them to the Learner.
     """
 
-    def __init__(self, agent: Learner):
+    def __init__(
+        self,
+        agent: Learner,
+        *,
+        callback_mode: CallbackMode = "background",
+    ):
+        require_optional_dependency(
+            _LANGCHAIN_AVAILABLE,
+            feature="ExperiaCallbackHandler",
+            extra="experia[langchain]",
+        )
+        builder = ExperienceBuilder(agent=agent, callback_mode=callback_mode)
         super().__init__()
-        self.builder = ExperienceBuilder(agent=agent)
+        self.builder = builder
 
     async def on_chain_start(
         self,
