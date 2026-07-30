@@ -38,10 +38,11 @@ the reporter asks to be credited.
 Security fixes are provided only for supported release lines. Older lines are
 end-of-life and should upgrade to the current line.
 
-- **Supported release lines:** 0.7.x: supported; 0.2.x: end-of-life; 0.1.x: end-of-life
+- **Supported release lines:** 0.8.x: supported; 0.7.x: supported; 0.2.x: end-of-life; 0.1.x: end-of-life
 
 | Release line | Status | Security fixes |
 | ------------ | ------------ | -------------- |
+| 0.8.x | Supported | Yes |
 | 0.7.x | Supported | Yes |
 | 0.2.x | End-of-life | No |
 | 0.1.x | End-of-life | No |
