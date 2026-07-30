@@ -209,7 +209,7 @@ test that exercises the installed behavior.
 
 **Planned (unavailable in the current version)**
 
-The following roadmap items are not implemented in version 0.7.0 and are not
+The following roadmap items are not implemented in version 0.8.0 and are not
 used by any quickstart. Existing placeholder imports fail explicitly with
 `UnavailableFeatureError` rather than presenting an operational backend. Each
 item's owner/team/`unassigned` status and readiness are tracked in the

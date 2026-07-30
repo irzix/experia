@@ -185,10 +185,10 @@ def test_release_date_requires_exact_calendar_valid_iso_date(value: str):
 
 
 def test_loaders_read_current_project_and_release_evidence():
-    assert load_project_version(ROOT / "pyproject.toml") == "0.7.0"
+    assert load_project_version(ROOT / "pyproject.toml") == "0.8.0"
     releases = load_changelog_releases(ROOT / "CHANGELOG.md")
-    current = next(release for release in releases if release.version == "0.7.0")
-    assert current.release_date == "2026-07-24"
+    current = next(release for release in releases if release.version == "0.8.0")
+    assert current.release_date == "2026-07-30"
 
 
 def test_cli_reports_named_observed_values_on_success_and_failure(
