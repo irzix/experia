@@ -455,14 +455,27 @@ class AsyncWorkManager:
             self._state = WorkManagerState.CLOSED
 
     def _capture_flush_generation(self, generation: int, cutoff: int) -> None:
-        """Retain cutoff-eligible roots and their currently known descendants."""
+        """Retain cutoff-eligible roots and their currently known descendants.
+
+        A root accepted at or under the cutoff is retained even when it has
+        already reached a terminal state, so a job that finished before this
+        synchronous snapshot is still reported by exactly this generation. This
+        matters when the loop yields between acceptance and the snapshot: a
+        fast or synchronously-failing job can already be terminal, and dropping
+        it here would silently hide both its outcome and any typed failure.
+
+        Roots already owned by a prior generation are excluded so no job is
+        reported twice. A terminal record is treated as already owned when it
+        is still retained by an active generation or has been released and is
+        only awaiting pruning; either way an earlier flush already reports it.
+        """
 
         pending = [
             record.handle.job_id
             for record in self._records.values()
             if (
                 record.handle.accepted_sequence <= cutoff
-                and not record.state.is_terminal
+                and not self._owned_by_prior_generation(record)
             )
         ]
         seen: set[UUID] = set()
@@ -476,6 +489,21 @@ class AsyncWorkManager:
                 continue
             record.flush_generations.add(generation)
             pending.extend(self._children.get(job_id, ()))
+
+    @staticmethod
+    def _owned_by_prior_generation(record: JobRecord) -> bool:
+        """Return whether a terminal record is already owned by another flush.
+
+        Non-terminal roots are never treated as owned: a prior generation only
+        reports a job once that job is terminal, so a still-running job must be
+        captured by the current cutoff. A terminal root is owned when a prior
+        generation still retains it (``flush_generations`` non-empty) or has
+        released it and left it awaiting pruning (``prune_when_unreferenced``).
+        """
+
+        if not record.state.is_terminal:
+            return False
+        return bool(record.flush_generations) or record.prune_when_unreferenced
 
     async def _wait_for_flush_generation(
         self, generation: int
