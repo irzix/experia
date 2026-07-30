@@ -1,0 +1,60 @@
+name: Bug report
+description: Report a reproducible defect in Experia.
+title: "[Bug]: "
+labels: ["bug", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to file a bug. Complete every field below so we
+        can reproduce and fix the problem quickly. Please redact secrets and other
+        sensitive data before submitting.
+  - type: input
+    id: experia-version
+    attributes:
+      label: Experia version
+      description: The installed Experia release, for example the output of `pip show experia`.
+      placeholder: 0.7.0
+    validations:
+      required: true
+  - type: input
+    id: python-version
+    attributes:
+      label: Python version
+      description: The interpreter version, for example the output of `python --version`.
+      placeholder: 3.11.8
+    validations:
+      required: true
+  - type: input
+    id: operating-system
+    attributes:
+      label: Operating system
+      description: The operating system name and version you ran Experia on.
+      placeholder: Ubuntu 22.04
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction-steps
+    attributes:
+      label: Reproduction steps
+      description: Minimal, ordered steps that reliably reproduce the bug.
+      placeholder: |
+        1. Construct the Learner with ...
+        2. Call ...
+        3. Observe ...
+    validations:
+      required: true
+  - type: textarea
+    id: expected-behavior
+    attributes:
+      label: Expected behavior
+      description: What you expected Experia to do.
+    validations:
+      required: true
+  - type: textarea
+    id: actual-behavior
+    attributes:
+      label: Actual behavior
+      description: What actually happened, including full tracebacks or logs with sensitive data removed.
+    validations:
+      required: true

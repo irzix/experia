@@ -1,0 +1,53 @@
+items:
+- id: autogen
+  kind: integration
+  readiness: planned
+  title: AutoGen native integration
+  unassigned: true
+- entrypoint:
+    attribute: CrewAIIntegration
+    feature: crewai
+    module: experia.integrations.crewai
+  id: crewai
+  kind: integration
+  readiness: planned
+  title: CrewAI native integration
+  unassigned: true
+- id: distributed_mode
+  kind: runtime
+  readiness: planned
+  title: Distributed production mode (Redis-backed queue + workers)
+  unassigned: true
+- entrypoint:
+    attribute: Mem0Adapter
+    feature: mem0
+    module: experia.adapters.mem0
+  id: mem0
+  kind: adapter
+  readiness: planned
+  title: Mem0 memory adapter
+  unassigned: true
+- id: openai_agents
+  kind: integration
+  readiness: planned
+  title: OpenAI Agents native integration
+  unassigned: true
+- entrypoint:
+    attribute: PostgresAdapter
+    feature: postgres
+    module: experia.adapters.postgres
+  id: postgres
+  kind: adapter
+  readiness: planned
+  title: PostgreSQL + `pgvector` store
+  unassigned: true
+- entrypoint:
+    attribute: ZepAdapter
+    feature: zep
+    module: experia.adapters.zep
+  id: zep
+  kind: adapter
+  readiness: planned
+  title: Zep memory adapter
+  unassigned: true
+schema_version: 1
