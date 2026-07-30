@@ -76,9 +76,8 @@ async def test_experience_flow():
             parent_run_id=None,
         )
 
-        # Give asyncio tasks a moment to complete (record is fire-and-forget)
-        await asyncio.sleep(0.1)
-        await agent.flush()  # await background evaluation
+        # Managed background persistence and evaluation share one flush boundary.
+        await asyncio.wait_for(agent.flush(), timeout=1)
 
         # Verify the experience was properly compiled and stored
         recent = await store.get_recent_experiences(limit=5)

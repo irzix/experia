@@ -1,0 +1,120 @@
+{
+  "failures": [
+    {
+      "id": "save_serialization_or_commit",
+      "resulting_state": "The write transaction is rolled back; no partial record is persisted and no evaluation job is created.",
+      "retry": "Retry after correcting the data or database; a documented idempotency policy controls duplicate identifiers.",
+      "trigger": "Serialization or commit fails while saving an experience, memory, or feedback update.",
+      "typed_error": "experia.StorageError"
+    },
+    {
+      "id": "lesson_memory_pair",
+      "resulting_state": "Neither the lesson nor the derived memory is persisted; a previously persisted raw experience is retained.",
+      "retry": "Evaluation may be retried; the caller controls duplicate identifiers.",
+      "trigger": "Inserting or committing the lesson-and-derived-memory pair fails.",
+      "typed_error": "experia.StorageError"
+    },
+    {
+      "id": "malformed_stored_value",
+      "resulting_state": "Only the read fails, carrying the table, record, and field context; persisted state is unchanged.",
+      "retry": "Retry after repairing or migrating the stored data.",
+      "trigger": "Stored JSON, enum, UUID, or timestamp data is malformed when loaded.",
+      "typed_error": "experia.StorageError"
+    },
+    {
+      "id": "migration_step_or_commit",
+      "resulting_state": "The pre-migration schema and records are preserved through rollback.",
+      "retry": "Re-run initialization after resolving the cause; forward migration is idempotent.",
+      "trigger": "A schema migration step or its commit fails.",
+      "typed_error": "experia.StorageError"
+    },
+    {
+      "id": "closed_store_operation",
+      "resulting_state": "Store state is unchanged.",
+      "retry": "Initialize before closing, or construct a new store after close.",
+      "trigger": "A public operation is invoked on a closing or closed store.",
+      "typed_error": "experia.StorageError"
+    },
+    {
+      "id": "downstream_background_failure",
+      "resulting_state": "The persisted experience is retained; the job reaches a failure terminal state and is reported by flush() or shutdown(drain).",
+      "retry": "The caller may retry the specific operation identified by the failure context.",
+      "trigger": "Evaluation, embedding, rule generation, or reflection fails for a background job.",
+      "typed_error": "experia.EvaluationFailure"
+    },
+    {
+      "id": "submit_during_shutdown",
+      "resulting_state": "No new job or write is created.",
+      "retry": "Construct a new Learner; the shut-down instance is not reopened.",
+      "trigger": "Background_Job work is submitted during or after shutdown.",
+      "typed_error": "experia.LifecycleError"
+    },
+    {
+      "id": "invalid_configuration",
+      "resulting_state": "No I/O or mutation occurs.",
+      "retry": "Retry with a valid configuration value.",
+      "trigger": "An invalid limit, prompt budget, or configuration value is supplied.",
+      "typed_error": "experia.ConfigurationError"
+    },
+    {
+      "id": "missing_optional_dependency",
+      "resulting_state": "No Experia state changes before the error, which names the required extra.",
+      "retry": "Install the named extra and invoke the feature again.",
+      "trigger": "An optional feature is invoked without its installation extra.",
+      "typed_error": "experia.ConfigurationError"
+    },
+    {
+      "id": "planned_placeholder",
+      "resulting_state": "No Experia state changes.",
+      "retry": "Available only after a release marks the feature implemented.",
+      "trigger": "A planned placeholder adapter or integration is constructed or invoked.",
+      "typed_error": "experia.UnavailableFeatureError"
+    },
+    {
+      "id": "sanitizer_failure",
+      "resulting_state": "Neither the external request nor its log metadata is emitted, and caller-provided values are left unchanged.",
+      "retry": "Retry after fixing the sanitizer or data; automatic bypass is not allowed.",
+      "trigger": "The configured sanitizer fails before an external sink or log emission.",
+      "typed_error": "experia.SanitizationError"
+    }
+  ],
+  "operations": [
+    {
+      "call_order": "Await once after constructing the store and before any read or write; Learner never calls it implicitly.",
+      "id": "store_initialize",
+      "idempotence": "Safe to await more than once; an already-open connection is reused and forward-only migration is a no-op at the current version.",
+      "method": "experia.memory.store.SQLiteStore.initialize",
+      "pending_jobs": "Creates no Background_Job; no background work is pending on return.",
+      "postconditions": "Opens the SQLite connection, enables foreign keys, best-effort WAL, and migrates the schema forward to the current version before returning.",
+      "title": "Store initialization"
+    },
+    {
+      "call_order": "Await after record() or remember() to complete outstanding evaluation, embedding, rule-generation, and reflection work; returns a FlushReport.",
+      "id": "learner_flush",
+      "idempotence": "Repeatable; each call opens a new cutoff generation, and a call with no outstanding work returns an empty report.",
+      "method": "experia.core.learner.Learner.flush",
+      "pending_jobs": "Every Background_Job in the flush snapshot is terminal on return; jobs accepted after the cutoff stay pending and are unaffected.",
+      "postconditions": "Captures a cutoff snapshot of every non-terminal Background_Job accepted before the call plus its causal descendants, returns only after each reaches a terminal state, and raises a typed EvaluationFailure that aggregates downstream failures while retaining persisted experiences.",
+      "title": "Learner.flush()"
+    },
+    {
+      "call_order": "Await once when the Learner is finished to stop accepting new Background_Job work; select the drain or cancel policy; returns a ShutdownReport. Learner.aclose() wraps this and can also close the store.",
+      "id": "learner_shutdown",
+      "idempotence": "Idempotent; the first caller selects the policy and concurrent or later callers await the same completion. The Learner is not reopened after shutdown; construct a new instance.",
+      "method": "experia.core.learner.Learner.shutdown",
+      "pending_jobs": "Every accepted Background_Job is terminal on return; submissions during and after shutdown are rejected with a typed LifecycleError.",
+      "postconditions": "Atomically closes submissions and, under drain, awaits every accepted job or, under cancel, requests cancellation of every non-terminal job and awaits its terminal transition; drain surfaces an aggregated EvaluationFailure only after all jobs are terminal.",
+      "title": "Shutdown operation (Learner.shutdown())"
+    },
+    {
+      "call_order": "Await when the store owner is finished, after any Learner.shutdown(); Learner.aclose(close_store=True) performs this ordering. Learner.shutdown() does not close the caller-owned store implicitly.",
+      "id": "store_close",
+      "idempotence": "Idempotent; concurrent callers await one close completion, and calls after the first successful close are no-ops with persisted data unchanged.",
+      "method": "experia.memory.store.SQLiteStore.close",
+      "pending_jobs": "Closing the store does not manage Learner Background_Job work; drain or cancel it with Learner.shutdown() or flush() first so no evaluation job races the connection close.",
+      "postconditions": "Waits for in-flight store operations to drain, closes the SQLite connection, and marks the store closed; later store operations raise a typed StorageError with operation \"lifecycle\".",
+      "title": "Store close (SQLiteStore.close())"
+    }
+  ],
+  "schema_version": 1
+}

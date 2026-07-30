@@ -1,4 +1,6 @@
-from typing import List
+from __future__ import annotations
+
+from typing import Any, List
 
 try:
     from langchain_core.callbacks import (
@@ -8,11 +10,18 @@ try:
     from langchain_core.documents import Document
     from langchain_core.retrievers import BaseRetriever
 except ImportError:
+    _LANGCHAIN_AVAILABLE = False
+    AsyncCallbackManagerForRetrieverRun = Any
+    CallbackManagerForRetrieverRun = Any
+    Document = Any
 
     class BaseRetriever:
         pass
+else:
+    _LANGCHAIN_AVAILABLE = True
 
 
+from experia.core.dependencies import require_optional_dependency
 from experia.core.learner import Learner
 
 
@@ -24,6 +33,14 @@ class ExperiaLearningRetriever(BaseRetriever):
     It intentionally focuses on 'learning' (lessons/rules) rather than raw experiences,
     ensuring the agent retrieves learned cognitive behaviors.
     """
+
+    def __new__(cls, *args: Any, **kwargs: Any) -> "ExperiaLearningRetriever":
+        require_optional_dependency(
+            _LANGCHAIN_AVAILABLE,
+            feature="ExperiaLearningRetriever",
+            extra="experia[langchain]",
+        )
+        return super().__new__(cls)
 
     agent: Learner
     limit: int = 5

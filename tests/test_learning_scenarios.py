@@ -175,7 +175,18 @@ class TopicEmbedder:
     """
 
     TOPICS = {
-        "infra": {"nginx", "server", "deploy", "port", "docker", "restart", "web", "service", "crash", "bound"},
+        "infra": {
+            "nginx",
+            "server",
+            "deploy",
+            "port",
+            "docker",
+            "restart",
+            "web",
+            "service",
+            "crash",
+            "bound",
+        },
         "data": {"database", "sql", "query", "postgres", "index", "schema"},
         "lang": {"python", "syntax", "import", "script", "typescript"},
     }

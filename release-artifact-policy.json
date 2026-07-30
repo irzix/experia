@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "package": "experia",
+  "readme_path": "README.md",
+  "license_path": "LICENSE",
+  "license_expression": "MIT",
+  "requires_python": ">=3.10",
+  "required_project_url_labels": [
+    "Homepage",
+    "Repository",
+    "Issues"
+  ],
+  "supported_python_versions": [
+    "3.10",
+    "3.11",
+    "3.12"
+  ],
+  "typing_marker": "experia/py.typed",
+  "typing_mode": "inline",
+  "wheel": {
+    "allowed_package_roots": [
+      "experia"
+    ],
+    "required_paths": [
+      "experia/__init__.py",
+      "experia/py.typed"
+    ],
+    "excluded_path_prefixes": [
+      ".github/",
+      "benchmark/",
+      "docs/",
+      "examples/",
+      "scripts/",
+      "tests/"
+    ],
+    "excluded_path_suffixes": [
+      ".pyc",
+      ".pyo"
+    ],
+    "excluded_basenames": [
+      ".DS_Store",
+      ".env",
+      ".coverage"
+    ]
+  }
+}

@@ -11,6 +11,9 @@ class SimpleHeuristicEvaluator(Evaluator):
     Implements the Evaluator Protocol.
     """
 
+    def __init__(self) -> None:
+        """Initialize an evaluator with no configurable constructor state."""
+
     async def evaluate(self, experience: ExperienceRecord) -> Optional[Lesson]:
         """Evaluates the experience asynchronously."""
         lower_result = experience.result.lower()

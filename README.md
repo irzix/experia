@@ -56,7 +56,7 @@ pits two identical agents against the same workday of ops tasks. The agent has
 **no built-in knowledge** — its only intelligence is the context Experia injects,
 so every difference is attributable to the cognitive layer.
 
-```text
+```text illustrative
 Experia learning benchmark  (6 tasks x 4 rounds = 24 episodes)
 ==================================================================
 Metric                                  Baseline       Experia
@@ -80,7 +80,7 @@ agent fails each task at most once, extracts the lesson, and never repeats it �
 reaching a 100% success rate from the second encounter on. No LLM or API key is
 required to reproduce this:
 
-```bash
+```bash illustrative
 python benchmark/learning_benchmark.py
 ```
 
@@ -90,154 +90,140 @@ Experia acts as a cognitive plugin. It does not replace your agent frameworks (l
 
 ## Getting Started
 
-Experia uses an **asynchronous** and **pluggable** architecture. To use the advanced cognitive features (Root Cause Analysis, Rules, and Reflection), install with the `llm` extra. You can also install specific integration extras like `langchain`, `langgraph`, or `openai`:
+Install the base package for the offline core quickstart:
 
-```bash
-pip install "experia[llm,langgraph]"
+```bash illustrative
+pip install experia
 ```
 
-*Note: You will need an `OPENAI_API_KEY` (or other litellm supported keys) exported in your environment.*
+Optional features have separate extras: `experia[llm]` for LiteLLM-backed
+evaluation/embedding/rules/reflection, `experia[langchain]` for LangChain, and
+`experia[langgraph]` for LangGraph. Provider credentials are needed only when
+the selected LLM or embedding provider requires them.
 
-For full documentation on classes, methods, and models, please see the [API Reference](API_REFERENCE.md).
+For class and method details, see the [API Reference](API_REFERENCE.md).
 
-### Native LangGraph Integration
+### Offline quickstart
 
-Experia provides native, stateful Nodes for **LangGraph**, the modern standard for Multi-Agent and Cyclical AI workflows.
+This is the canonical executable quickstart from
+[`examples/quickstart.py`](examples/quickstart.py). It needs no network access,
+credentials, or optional extra, and its assertions document the installed
+`ExperienceRecord` and `Memory` behavior.
 
-```python
+<!-- BEGIN EXECUTABLE QUICKSTART -->
+```python executable
+"""Executable, offline Experia quickstart using only the base installation."""
+
 import asyncio
-from experia.core.learner import Learner
-from experia.memory.store import SQLiteStore
-from experia.experience.llm_evaluator import LLMEvaluator
-from experia.integrations.langgraph.nodes import ExperiaContextNode, ExperiaLearningNode
-from langgraph.graph import StateGraph, MessagesState
+
+from experia import Learner, MemoryType, SimpleHeuristicEvaluator, SQLiteStore
 
 
-async def main():
-    store = SQLiteStore("my_agent.db")
+async def main() -> None:
+    store = SQLiteStore(":memory:")
     await store.initialize()
-    agent = Learner(store=store, evaluator=LLMEvaluator(model="gpt-4o-mini"))
+    try:
+        learner = Learner(
+            store=store,
+            evaluator=SimpleHeuristicEvaluator(),
+        )
 
-    # Define your standard LangGraph
-    builder = StateGraph(MessagesState)
+        experience = await learner.record(
+            task="Deploy web app",
+            action="Restart Nginx",
+            result="failed with config syntax error",
+            context={"attempt": 1},
+        )
+        assert experience.task == "Deploy web app"
+        assert experience.action == "Restart Nginx"
+        assert experience.result == "failed with config syntax error"
+        assert experience.context == {"attempt": 1}
 
-    # 1. Add Experia Context Node (Injects learned knowledge before the agent acts)
-    builder.add_node("inject_context", ExperiaContextNode(agent=agent))
+        persisted = await store.get_experience(experience.id)
+        assert persisted is not None
+        assert persisted.model_dump() == experience.model_dump()
 
-    # 2. Add your Agent and Tool nodes
-    # builder.add_node("agent", ...)
-    # builder.add_node("tools", ...)
+        await learner.flush()
+        memories = await store.search_memories(memory_type=MemoryType.LESSON)
+        assert len(memories) == 1
+        lesson_memory = memories[0]
+        assert lesson_memory.type is MemoryType.LESSON
+        assert lesson_memory.agent_role == "default"
+        assert lesson_memory.confidence == 0.6
+        assert lesson_memory.source == f"experience_{experience.id}"
+        assert "Restart Nginx" in lesson_memory.content
 
-    # 3. Add Experia Learning Node (Extracts experiences after tools run)
-    builder.add_node("learn", ExperiaLearningNode(agent=agent))
-
-    # Flow
-    builder.set_entry_point("inject_context")
-    # builder.add_edge("inject_context", "agent")
-    # builder.add_edge("agent", "tools")
-    # builder.add_edge("tools", "learn")
-    # builder.add_edge("learn", "agent")
-
-    graph = builder.compile()
-
-    # Now run your graph! Experia will automatically learn from every cycle.
-    # await graph.ainvoke({"messages": [...]})
+        reinforced = await learner.reinforce(lesson_memory.id, success=True)
+        assert reinforced is not None
+        assert reinforced.reinforcement_count == 1
+        assert reinforced.success_count == 1
+        assert reinforced.confidence == 0.68
+    finally:
+        await store.close()
 
 
 if __name__ == "__main__":
     asyncio.run(main())
 ```
+<!-- END EXECUTABLE QUICKSTART -->
 
-### Manual Core API
+Run the same checked source with:
 
-You can also use the core API manually without any frameworks:
-
-```python
-import asyncio
-from experia.core.learner import Learner
-from experia.memory.store import SQLiteStore
-from experia.experience.llm_evaluator import LLMEvaluator
-from experia.improvement.rules import RuleGenerator
-
-
-async def main():
-    store = SQLiteStore("my_agent.db")
-    await store.initialize()
-
-    agent = Learner(
-        store=store,
-        evaluator=LLMEvaluator(model="gpt-4o-mini"),
-        rule_generator=RuleGenerator(store=store, model="gpt-4o-mini"),
-    )
-
-    # Record actions explicitly
-    await agent.record(
-        task="Deploy web app",
-        action="Restart Nginx",
-        result="failed with config syntax error",
-    )
-
-    # Developer-controlled Nightly Reflection
-    await agent.reflect(model="gpt-4o-mini", batch_size=50)
-
-
-if __name__ == "__main__":
-    asyncio.run(main())
+```bash illustrative
+python examples/quickstart.py
 ```
 
-### Semantic Retrieval & the Feedback Loop
+`Learner` always requires both `store` and `evaluator`; the quickstart uses the
+base-package `SimpleHeuristicEvaluator`. Network-backed calls are kept out of the offline quickstart. The installed
+constructor examples below exercise each optional import without making network
+requests; the API gate runs each script in an environment containing only its
+declared extra.
 
-Retrieval is semantic when you attach an `Embedder`. Experia embeds memories on
-write, ranks them by cosine similarity (blended with importance) on read, and
-transparently falls back to keyword search when no embedder is configured — so
-local mode stays dependency-light.
+- LLM evaluation, embeddings, and rules: `experia.experience.llm_evaluator.LLMEvaluator`,
+  `experia.LiteLLMEmbedder`, and `experia.improvement.rules.RuleGenerator` with
+  `experia[llm]` ([example](examples/llm_extra.py)).
+- LangChain callbacks/retrieval: `experia.integrations.langchain.callbacks.ExperiaCallbackHandler`
+  and `experia.integrations.langchain.retrievers.ExperiaLearningRetriever` with
+  `experia[langchain]` ([example](examples/langchain_extra.py)).
+- LangGraph nodes: `experia.integrations.langgraph.nodes.ExperiaContextNode` and
+  `experia.integrations.langgraph.nodes.ExperiaLearningNode` with
+  `experia[langgraph]` ([example](examples/langgraph_extra.py)).
 
-```python
-from experia.memory.embeddings import LiteLLMEmbedder
-
-agent = Learner(
-    store=store,
-    evaluator=LLMEvaluator(model="gpt-4o-mini"),
-    embedder=LiteLLMEmbedder(model="text-embedding-3-small"),  # optional
-)
-
-# Capture is non-blocking: the raw experience is saved immediately and the
-# (expensive) evaluation runs in the background.
-await agent.record(task="Deploy web app", action="Restart Nginx", result="failed")
-await agent.flush()  # await pending background evaluations when you need them
-
-# Close the loop: tell Experia whether applying a memory actually helped.
-# Confidence moves toward 1.0 on success, 0.0 on failure.
-await agent.reinforce(memory_id, success=True)
-
-# Housekeeping: sweep expired memories.
-await agent.prune()
-```
-
-Near-duplicate lessons are de-duplicated on write (the existing memory is
-reinforced instead of storing a copy).
+The exact example-to-extra mapping is machine-readable in
+[`examples/installed-examples.json`](examples/installed-examples.json).
 
 ## Project Status
 
 **Implemented today**
 
-- Core experience → lesson → memory loop (`Learner`)
-- `SQLiteStore` with a reused connection, indexes, and atomic lesson+memory writes
-- Pluggable `Embedder` + semantic retrieval (keyword fallback)
-- Background (non-blocking) evaluation with `flush()`
-- Confidence reinforcement (`reinforce`), memory de-duplication, and expiry (`prune`)
-- LLM evaluator, rule generation, reflection engine
-- LangChain & LangGraph integrations
+Each implemented entry links to an executable example or automated executable
+test that exercises the installed behavior.
 
-**Planned (not yet implemented)**
+| Capability | Executable evidence |
+|---|---|
+| Core experience → lesson → memory loop, SQLite persistence, background `flush()`, and confidence reinforcement | [offline quickstart](examples/quickstart.py) · [automated quickstart test](tests/test_documentation.py) |
+| Pluggable embedder, semantic retrieval, keyword fallback, de-duplication, and expiry | [learner scenarios](tests/test_learner.py) · [store scenarios](tests/test_store.py) |
+| LLM evaluator, rule generation, and reflection | [LLM/rule executable tests](tests/test_llm.py) · [reflection executable test](tests/test_reflection.py) |
+| LangChain callback integration | [end-to-end callback example/test](tests/integrations/test_experience_flow.py) |
+| LangGraph context and learning nodes | [node example/test](tests/integrations/test_langgraph_nodes.py) |
 
-The following backends are on the roadmap and are currently placeholder modules —
-they are **not** production-ready yet:
+**Planned (unavailable in the current version)**
 
-- PostgreSQL + `pgvector` store
-- Mem0 and Zep memory adapters
-- CrewAI / OpenAI Agents / AutoGen native integrations
-- Distributed production mode (Redis-backed queue + workers)
+The following roadmap items are not implemented in version 0.8.0 and are not
+used by any quickstart. Existing placeholder imports fail explicitly with
+`UnavailableFeatureError` rather than presenting an operational backend. Each
+item's owner/team/`unassigned` status and readiness are tracked in the
+machine-validated [`roadmap-ownership.yml`](roadmap-ownership.yml) manifest:
+
+<!-- BEGIN GENERATED ROADMAP STATUS -->
+- **AutoGen native integration** (integration) — readiness `planned`, ownership `unassigned`; no importable placeholder yet.
+- **CrewAI native integration** (integration) — readiness `planned`, ownership `unassigned`; placeholder `experia.integrations.crewai.CrewAIIntegration` raises `UnavailableFeatureError`.
+- **Distributed production mode (Redis-backed queue + workers)** (runtime) — readiness `planned`, ownership `unassigned`; no importable placeholder yet.
+- **Mem0 memory adapter** (adapter) — readiness `planned`, ownership `unassigned`; placeholder `experia.adapters.mem0.Mem0Adapter` raises `UnavailableFeatureError`.
+- **OpenAI Agents native integration** (integration) — readiness `planned`, ownership `unassigned`; no importable placeholder yet.
+- **PostgreSQL + `pgvector` store** (adapter) — readiness `planned`, ownership `unassigned`; placeholder `experia.adapters.postgres.PostgresAdapter` raises `UnavailableFeatureError`.
+- **Zep memory adapter** (adapter) — readiness `planned`, ownership `unassigned`; placeholder `experia.adapters.zep.ZepAdapter` raises `UnavailableFeatureError`.
+<!-- END GENERATED ROADMAP STATUS -->
 
 Contributions toward these are welcome — see [CONTRIBUTING.md](CONTRIBUTING.md).
 

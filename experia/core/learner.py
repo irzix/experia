@@ -1,15 +1,32 @@
 import asyncio
-from typing import Any, Dict, List, Optional, Set
+import inspect
+from typing import Any, Dict, List, Literal, Optional
 from uuid import UUID
 
 from experia.context.builder import ContextBuilder
-from experia.core.exceptions import ConfigurationError
+from experia.core.exceptions import (
+    ConfigurationError,
+    LifecycleError,
+    SanitizationError,
+)
 from experia.core.interfaces import Evaluator, MemoryStore
 from experia.core.logging import logger
+from experia.core.work import (
+    AsyncWorkManager,
+    FlushReport,
+    JobHandle,
+    LifecycleObserver,
+    OperationType,
+    ShutdownPolicy,
+    ShutdownReport,
+    TerminalState,
+    WorkManagerState,
+)
 from experia.experience.models import ExperienceRecord, Lesson
 from experia.improvement.rules import RuleGenerator
 from experia.memory.embeddings import Embedder
 from experia.memory.models import Memory, MemoryType
+from experia.security.protection import DataProtectionLayer
 
 
 class Learner:
@@ -28,9 +45,19 @@ class Learner:
         agent_role: str = "default",
         background_evaluation: bool = True,
         dedup_threshold: float = 0.95,
+        *,
+        embedding_failure: Literal["fallback", "raise"] = "fallback",
+        data_protection: DataProtectionLayer | None = None,
+        lifecycle_observer: LifecycleObserver | None = None,
     ):
         if not store or not evaluator:
             raise ConfigurationError("Learner requires both a store and an evaluator.")
+        if embedding_failure not in {"fallback", "raise"}:
+            raise ConfigurationError(
+                "embedding_failure must be 'fallback' or 'raise'.",
+                feature="Learner",
+                parameter="embedding_failure",
+            )
 
         self.store = store
         self.evaluator = evaluator
@@ -39,8 +66,15 @@ class Learner:
         self.agent_role = agent_role
         self.background_evaluation = background_evaluation
         self.dedup_threshold = dedup_threshold
+        self.embedding_failure = embedding_failure
+        self.data_protection = data_protection or DataProtectionLayer()
+        if data_protection is not None:
+            for sink in (self.evaluator, self.rule_generator, self.embedder):
+                configure = getattr(sink, "_set_data_protection", None)
+                if callable(configure):
+                    configure(data_protection)
         self.context_builder = ContextBuilder()
-        self._pending: Set[asyncio.Task] = set()
+        self._work_manager = AsyncWorkManager(observer=lifecycle_observer)
         logger.info(f"Experia Learner initialized successfully for role: {agent_role}.")
 
     async def record(
@@ -56,6 +90,25 @@ class Learner:
         evaluation runs in the background unless ``background_evaluation`` is
         disabled. Use ``await learner.flush()`` to await pending evaluations.
         """
+        self._assert_accepting("record")
+        return await self._record(
+            task=task,
+            action=action,
+            result=result,
+            context=context,
+        )
+
+    async def _record(
+        self,
+        *,
+        task: str,
+        action: str,
+        result: str,
+        context: Optional[Dict[str, Any]],
+        parent_job_id: UUID | None = None,
+    ) -> ExperienceRecord:
+        """Persist one accepted record request and schedule its evaluation."""
+
         experience = ExperienceRecord(
             task=task,
             action=action,
@@ -66,38 +119,138 @@ class Learner:
         await self.store.save_experience(experience)
         logger.debug(f"Recorded experience {experience.id} for task '{task}'")
 
-        if self.background_evaluation:
-            self._spawn(self._evaluate_and_remember(experience))
-        else:
-            await self._evaluate_and_remember(experience)
+        evaluation = self._submit_evaluation(
+            experience,
+            parent_job_id=parent_job_id,
+        )
+        if not self.background_evaluation:
+            if parent_job_id is None:
+                await self.flush()
+            else:
+                await self._work_manager.wait(evaluation)
         return experience
 
-    def _spawn(self, coro) -> None:
-        """Schedule background work, tracking it so ``flush()`` can await it."""
-        task = asyncio.ensure_future(coro)
-        self._pending.add(task)
-        task.add_done_callback(self._on_task_done)
+    def _assert_accepting(self, operation: str) -> None:
+        state = self._work_manager.state
+        if state is not WorkManagerState.OPEN:
+            raise LifecycleError(state=state.value, operation=operation)
 
-    def _on_task_done(self, task: asyncio.Task) -> None:
-        self._pending.discard(task)
-        if not task.cancelled():
-            exc = task.exception()
-            if exc:
-                logger.error(f"Background evaluation failed: {exc}")
+    def _submit_callback_record(
+        self,
+        *,
+        task: str,
+        action: str,
+        result: str,
+        context: Optional[Dict[str, Any]],
+        on_success: Any = None,
+        on_failure: Any = None,
+    ) -> JobHandle:
+        """Register callback persistence as learner-owned background work."""
 
-    async def flush(self) -> None:
-        """Await all pending background evaluations."""
-        while self._pending:
-            await asyncio.gather(*list(self._pending), return_exceptions=True)
+        self._assert_accepting("record")
+        record_job_id: UUID | None = None
 
-    async def _evaluate_and_remember(self, experience: ExperienceRecord) -> None:
+        async def record() -> None:
+            if record_job_id is None:  # pragma: no cover - assigned before scheduling
+                raise RuntimeError("Record job identity is unavailable")
+            try:
+                await self._record(
+                    task=task,
+                    action=action,
+                    result=result,
+                    context=context,
+                    parent_job_id=record_job_id,
+                )
+            except Exception:
+                if on_failure is not None:
+                    on_failure()
+                raise
+            if on_success is not None:
+                on_success()
+
+        handle = self._work_manager.submit(OperationType.RECORD, record)
+        record_job_id = handle.job_id
+        return handle
+
+    def _submit_evaluation(
+        self,
+        experience: ExperienceRecord,
+        *,
+        parent_job_id: UUID | None = None,
+    ) -> JobHandle:
+        evaluation_job_id: UUID | None = None
+
+        async def evaluate() -> None:
+            if (
+                evaluation_job_id is None
+            ):  # pragma: no cover - assigned before scheduling
+                raise RuntimeError("Evaluation job identity is unavailable")
+            await self._evaluate_and_remember(
+                experience,
+                parent_job_id=evaluation_job_id,
+            )
+
+        handle = self._work_manager.submit(
+            OperationType.EVALUATION,
+            evaluate,
+            experience_id=experience.id,
+            parent_job_id=parent_job_id,
+        )
+        evaluation_job_id = handle.job_id
+        return handle
+
+    async def flush(self) -> FlushReport:
+        """Await the current background-work cutoff and return its outcomes."""
+        return await self._work_manager.flush()
+
+    async def shutdown(
+        self, policy: ShutdownPolicy | str = ShutdownPolicy.DRAIN
+    ) -> ShutdownReport:
+        """Stop accepting evaluation work and drain or cancel accepted jobs."""
+        return await self._work_manager.shutdown(policy)
+
+    async def aclose(
+        self,
+        policy: ShutdownPolicy | str = ShutdownPolicy.DRAIN,
+        *,
+        close_store: bool = False,
+    ) -> None:
+        """Shut down owned work and optionally close the caller-owned store."""
+        try:
+            await self.shutdown(policy)
+        finally:
+            if close_store:
+                await self._close_store()
+
+    async def _close_store(self) -> None:
+        close = getattr(self.store, "close", None)
+        if not callable(close):
+            raise ConfigurationError(
+                "The configured store does not support close().",
+                feature="Learner",
+                parameter="close_store",
+            )
+        result = close()
+        if inspect.isawaitable(result):
+            await result
+
+    async def _evaluate_and_remember(
+        self,
+        experience: ExperienceRecord,
+        *,
+        parent_job_id: UUID,
+    ) -> None:
         """Evaluate an experience and store its lesson + derived memory."""
         lesson = await self.evaluator.evaluate(experience)
         if not lesson:
             return
 
         lesson.agent_role = self.agent_role
-        embedding = await self._embed(lesson.content)
+        embedding = await self._embed(
+            lesson.content,
+            experience_id=experience.id,
+            parent_job_id=parent_job_id,
+        )
 
         # De-duplicate: if a near-identical lesson memory already exists,
         # reinforce it instead of inserting a redundant copy.
@@ -147,14 +300,73 @@ class Learner:
         if self.rule_generator:
             await self.rule_generator.consolidate_lesson(lesson)
 
-    async def _embed(self, text: str) -> Optional[List[float]]:
-        """Embed text if an embedder is configured; degrade gracefully on error."""
+    async def _embed(
+        self,
+        text: str,
+        *,
+        experience_id: UUID | None = None,
+        parent_job_id: UUID | None = None,
+    ) -> Optional[List[float]]:
+        """Embed text, retaining fallback while tracking pipeline failures."""
         if not self.embedder:
             return None
-        try:
+        if parent_job_id is None:
+            return await self._embed_direct(text)
+
+        embedding: Optional[List[float]] = None
+        embedding_error: Exception | None = None
+
+        async def embed() -> None:
+            nonlocal embedding, embedding_error
+            try:
+                embedding = await self._call_embedder(text)
+            except Exception as error:
+                embedding_error = error
+                raise
+
+        handle = self._work_manager.submit(
+            OperationType.EMBEDDING,
+            embed,
+            experience_id=experience_id,
+            parent_job_id=parent_job_id,
+        )
+        terminal_state = await self._work_manager.wait(handle)
+        if terminal_state is TerminalState.SUCCESS:
+            return embedding
+        if terminal_state is TerminalState.CANCELLATION:
+            raise asyncio.CancelledError
+        if isinstance(embedding_error, SanitizationError):
+            raise embedding_error
+        if self.embedding_failure == "fallback":
+            logger.warning("Embedding failed; falling back to keyword search.")
+            return None
+        if embedding_error is not None:
+            raise embedding_error
+        raise RuntimeError("Embedding failed without an available cause")
+
+    async def _call_embedder(self, text: str) -> List[float]:
+        if getattr(self.embedder, "_experia_protects_external", False):
             return await self.embedder.embed_one(text)
-        except Exception as e:
-            logger.warning(f"Embedding failed, falling back to keyword search: {e}")
+
+        fields, _metadata = self.data_protection.protect_sink(
+            {"text": text},
+            {
+                "feature": "external_embedder",
+                "operation": "embedding",
+                "text_count": 1,
+            },
+        )
+        return await self.embedder.embed_one(fields["text"])
+
+    async def _embed_direct(self, text: str) -> Optional[List[float]]:
+        try:
+            return await self._call_embedder(text)
+        except SanitizationError:
+            raise
+        except Exception:
+            if self.embedding_failure == "raise":
+                raise
+            logger.warning("Embedding failed; falling back to keyword search.")
             return None
 
     async def reflect(self, model: str = "gpt-4o", batch_size: int = 50) -> None:
@@ -165,11 +377,18 @@ class Learner:
         """
         from experia.reflection.consolidation import ReflectionEngine
 
-        engine = ReflectionEngine(store=self.store, model=model)
+        engine = ReflectionEngine(
+            store=self.store,
+            model=model,
+            data_protection=self.data_protection,
+        )
         await engine.reflect(batch_size=batch_size)
 
     async def retrieve_context(self, query: str = "", limit: int = 5) -> str:
         """Search cognitive memory and build a prompt string."""
+        validator = getattr(self.context_builder, "validate_configuration", None)
+        if callable(validator):
+            validator()
         query_embedding = await self._embed(query) if query else None
         memories = await self.store.search_memories(
             query=query,

@@ -1,35 +1,285 @@
-name: CI
+name: Quality Gate
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
   pull_request:
-    branches: [ "main" ]
+    branches: ["main"]
+  workflow_call:
+    outputs:
+      quality-gate-status:
+        description: Final reusable Quality Gate status for release workflows
+        value: ${{ jobs.quality-gate.outputs.status }}
+      artifact-name:
+        description: Name of the tested wheel, sdist, and identity manifest artifact
+        value: ${{ jobs.quality-gate.outputs.artifact-name }}
+
+permissions:
+  contents: read
+
+env:
+  HYPOTHESIS_PROFILE: ci
+  QUALITY_GATE_ARTIFACT: quality-gate-artifacts-python-3.12
 
 jobs:
-  build:
-
+  matrix:
+    name: Python ${{ matrix.python-version }}
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         python-version: ["3.10", "3.11", "3.12"]
 
     steps:
-    - uses: actions/checkout@v4
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v5
-      with:
-        python-version: ${{ matrix.python-version }}
-    
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -e ".[dev]"
-        
-    - name: Lint with Ruff
-      run: |
-        ruff check .
-        
-    - name: Test with pytest
-      run: |
-        pytest
+      - name: Check out source
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Set up the documented fresh-checkout environment
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[dev]"
+
+      - name: Validate optional dependency range changelog
+        env:
+          BASE_REVISION: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: |
+          if [[ -z "${BASE_REVISION}" || "${BASE_REVISION}" =~ ^0+$ ]]; then
+            BASE_REVISION="$(git rev-parse HEAD^)"
+          fi
+          if ! git cat-file -e "${BASE_REVISION}:pyproject.toml"; then
+            echo "FAIL optional-dependency-changelog: observed unavailable base_revision=${BASE_REVISION}" >&2
+            exit 1
+          fi
+          base_pyproject="${RUNNER_TEMP}/experia-base-pyproject.toml"
+          git show "${BASE_REVISION}:pyproject.toml" > "${base_pyproject}"
+          python scripts/changelog_gate.py \
+            --previous-pyproject "${base_pyproject}" \
+            --current-pyproject pyproject.toml \
+            --changelog CHANGELOG.md
+
+      - name: Lint (ruff check)
+        run: |
+          python -m ruff check . || {
+            observed=$?
+            echo "FAIL lint: observed exit_code=${observed}" >&2
+            exit "${observed}"
+          }
+          echo "PASS lint: observed exit_code=0"
+
+      - name: Format (ruff format --check)
+        run: |
+          python -m ruff format --check . || {
+            observed=$?
+            echo "FAIL format: observed exit_code=${observed}" >&2
+            exit "${observed}"
+          }
+          echo "PASS format: observed exit_code=0"
+
+      - name: Full tests and coverage collection
+        run: |
+          python -m pytest || {
+            observed=$?
+            echo "FAIL full-tests: observed exit_code=${observed}" >&2
+            exit "${observed}"
+          }
+          echo "PASS full-tests: observed exit_code=0"
+
+      - name: Granular coverage (85% per target)
+        run: |
+          python scripts/coverage_gate.py .coverage.granular.json || {
+            observed=$?
+            echo "FAIL granular-coverage: observed exit_code=${observed}" >&2
+            exit "${observed}"
+          }
+
+      - name: Build wheel and sdist once for Python ${{ matrix.python-version }}
+        run: |
+          python scripts/artifact_gate.py --output-dir dist/quality-gate || {
+            observed=$?
+            echo "FAIL build-artifacts[python-${{ matrix.python-version }}]: observed exit_code=${observed}" >&2
+            exit "${observed}"
+          }
+
+      - name: Upload tested Python 3.12 artifacts
+        if: ${{ matrix.python-version == '3.12' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.QUALITY_GATE_ARTIFACT }}
+          path: dist/quality-gate/*
+          if-no-files-found: error
+          retention-days: 7
+
+  artifact-gate:
+    name: Tested Artifact Gate
+    runs-on: ubuntu-latest
+    needs: matrix
+    outputs:
+      status: ${{ steps.complete.outputs.status }}
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Download tested artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ env.QUALITY_GATE_ARTIFACT }}
+          path: dist/quality-gate
+
+      - name: Inspect tested artifact identity
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          from scripts.artifact_gate import inspect_artifacts
+
+          directory = Path("dist/quality-gate")
+          manifest_path = directory / "artifact-manifest.json"
+          try:
+              manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+          except (OSError, json.JSONDecodeError) as error:
+              raise SystemExit(
+                  f"FAIL artifact-manifest: observed unreadable manifest: {error}"
+              ) from error
+
+          observed = [record.as_dict() for record in inspect_artifacts(directory)]
+          expected = manifest.get("artifacts")
+          smoke_status = manifest.get("smoke", {}).get("status")
+          if observed != expected or smoke_status != "passed":
+              raise SystemExit(
+                  "FAIL artifact-identity: "
+                  f"observed artifacts={observed!r}, manifest={expected!r}, "
+                  f"matrix_smoke_status={smoke_status!r}"
+              )
+          print(
+              "PASS artifact-identity: observed "
+              + ", ".join(
+                  f"{item['name']} sha256={item['sha256']} size={item['size_bytes']}"
+                  for item in observed
+              )
+          )
+          PY
+
+      - name: Smoke-test the downloaded wheel in a clean environment
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          from scripts.artifact_gate import smoke_installed_wheel
+
+          wheels = sorted(Path("dist/quality-gate").glob("*.whl"))
+          if len(wheels) != 1:
+              raise SystemExit(
+                  f"FAIL wheel-smoke: observed wheel_count={len(wheels)}, wheels={wheels!r}"
+              )
+          result = smoke_installed_wheel(wheels[0], Path.cwd())
+          print(
+              "PASS wheel-smoke: observed "
+              f"package={result.package!r}, version={result.package_version!r}, "
+              f"python={result.python_version!r}, origin={result.import_origin!r}"
+          )
+          PY
+
+      - name: Execute documented quickstart against the downloaded wheel
+        run: |
+          docs_venv="${RUNNER_TEMP}/experia-docs-venv"
+          docs_document="${RUNNER_TEMP}/experia-quickstart-smoke.md"
+          python -m venv "${docs_venv}"
+          shopt -s nullglob
+          wheels=(dist/quality-gate/*.whl)
+          if [[ ${#wheels[@]} -ne 1 ]]; then
+            echo "FAIL documentation-wheel: observed wheel_count=${#wheels[@]}" >&2
+            exit 1
+          fi
+          "${docs_venv}/bin/python" -m pip install --disable-pip-version-check --no-input "${wheels[0]}"
+          python - "${docs_document}" <<'PY'
+          import sys
+          from pathlib import Path
+
+          start = "<!-- BEGIN EXECUTABLE QUICKSTART -->"
+          end = "<!-- END EXECUTABLE QUICKSTART -->"
+          readme = Path("README.md").read_text(encoding="utf-8")
+          try:
+              fenced = readme.split(start, 1)[1].split(end, 1)[0].strip()
+              opening, remainder = fenced.split("\n", 1)
+          except (IndexError, ValueError) as error:
+              raise SystemExit(
+                  f"FAIL documentation-source: observed missing quickstart block: {error}"
+              ) from error
+          if opening not in {"```python", "```python executable"} or not remainder.endswith("\n```"):
+              raise SystemExit(
+                  "FAIL documentation-source: "
+                  f"observed opening={opening!r}, closed={remainder.endswith(chr(10) + '```')}"
+              )
+          source = remainder[: -len("\n```")]
+          Path(sys.argv[1]).write_text(
+              f"```python executable\n{source}\n```\n",
+              encoding="utf-8",
+          )
+          print("PASS documentation-source: observed canonical executable quickstart")
+          PY
+          docs_site=$("${docs_venv}/bin/python" -c 'import site; print(site.getsitepackages()[0])')
+          python scripts/documentation_blocks.py "${docs_document}" \
+            --python "${docs_venv}/bin/python" \
+            --installed-package-root "${docs_site}" \
+            --source-root "${GITHUB_WORKSPACE}"
+
+      - name: Run installed API, extras, and example gates on the downloaded wheel
+        run: |
+          shopt -s nullglob
+          wheels=(dist/quality-gate/*.whl)
+          if [[ ${#wheels[@]} -ne 1 ]]; then
+            echo "FAIL artifact-api-gate: observed wheel_count=${#wheels[@]}" >&2
+            exit 1
+          fi
+          python scripts/api_gate.py artifact \
+            --wheel "${wheels[0]}" \
+            --workspace "${RUNNER_TEMP}/experia-api-gate" || {
+              observed=$?
+              echo "FAIL artifact-api-gate: observed exit_code=${observed}" >&2
+              exit "${observed}"
+            }
+
+      - name: Record tested artifact gate status
+        id: complete
+        run: |
+          echo "status=passed" >> "${GITHUB_OUTPUT}"
+          echo "PASS tested-artifact-gate: observed status=passed"
+
+  quality-gate:
+    name: Quality Gate
+    runs-on: ubuntu-latest
+    if: ${{ always() }}
+    needs: [matrix, artifact-gate]
+    outputs:
+      status: ${{ steps.status.outputs.status }}
+      artifact-name: ${{ steps.status.outputs.artifact-name }}
+
+    steps:
+      - name: Require every observed Quality Gate check
+        id: status
+        env:
+          MATRIX_RESULT: ${{ needs.matrix.result }}
+          ARTIFACT_RESULT: ${{ needs.artifact-gate.result }}
+        run: |
+          echo "artifact-name=${QUALITY_GATE_ARTIFACT}" >> "${GITHUB_OUTPUT}"
+          if [[ "${MATRIX_RESULT}" != "success" || "${ARTIFACT_RESULT}" != "success" ]]; then
+            echo "status=failed" >> "${GITHUB_OUTPUT}"
+            echo "FAIL quality-gate: observed matrix=${MATRIX_RESULT}, tested-artifact-gate=${ARTIFACT_RESULT}" >&2
+            exit 1
+          fi
+          echo "status=passed" >> "${GITHUB_OUTPUT}"
+          echo "PASS quality-gate: observed matrix=${MATRIX_RESULT}, tested-artifact-gate=${ARTIFACT_RESULT}"

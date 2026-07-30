@@ -1,0 +1,92 @@
+{
+  "manifest_version": 1,
+  "fixture_format": "sqlite-executescript-sql-v1",
+  "support_window": {
+    "minimum_schema_version": 0,
+    "maximum_schema_version": 3,
+    "current_schema_version": 3,
+    "supported_schema_versions": [0, 1, 2, 3],
+    "upgrade_policy": "forward-only",
+    "version_zero_semantics": "recognized unversioned legacy schema"
+  },
+  "representative_values": {
+    "experience_id": "11111111-1111-4111-8111-111111111111",
+    "lesson_id": "22222222-2222-4222-8222-222222222222",
+    "memory_ids": [
+      "33333333-3333-4333-8333-333333333333",
+      "44444444-4444-4444-8444-444444444444"
+    ],
+    "context": {
+      "attempt": 2,
+      "flags": [true, false, null],
+      "request": {
+        "limits": {
+          "retries": 3,
+          "timeout_seconds": 1.5
+        },
+        "locale": "en-CA"
+      },
+      "tags": ["migration", "nested"]
+    },
+    "memory_types": ["strategy", "lesson"],
+    "embeddings": [
+      [0.125, -0.5, 1.25, 0.0],
+      [-1.0, 0.75, 0.5]
+    ],
+    "timezone_offsets": ["+05:30", "-04:00", "+09:00", "+00:00", "-07:00", "+14:00"]
+  },
+  "fixtures": [
+    {
+      "schema_version": 0,
+      "path": "schema-v0.sql",
+      "sha256": "3bb65eaa877285cd46c51b6060edea03224489561852f696a3212d2b1a6598b1",
+      "expected_after_migration": {
+        "experience_agent_role": "default",
+        "lesson_agent_role": "default",
+        "lesson_root_cause": null,
+        "memory_agent_roles": ["default", "default"],
+        "reinforcement_counts": [0, 0],
+        "success_counts": [0, 0]
+      }
+    },
+    {
+      "schema_version": 1,
+      "path": "schema-v1.sql",
+      "sha256": "56c57717b858cc6554ff11c932c984c16f267fe521f1c7f1518e9e98e9334b18",
+      "expected_after_migration": {
+        "experience_agent_role": "migration-specialist",
+        "lesson_agent_role": "migration-specialist",
+        "lesson_root_cause": "A previous migration path lacked an explicit version registry.",
+        "memory_agent_roles": ["global", "analysis-agent"],
+        "reinforcement_counts": [7, 2],
+        "success_counts": [5, 1]
+      }
+    },
+    {
+      "schema_version": 2,
+      "path": "schema-v2.sql",
+      "sha256": "2806be472d631381338a5cb862563727b3350db19bd6f5cdc0c34d2d37251d40",
+      "expected_after_migration": {
+        "experience_agent_role": "migration-specialist",
+        "lesson_agent_role": "migration-specialist",
+        "lesson_root_cause": "A previous migration path lacked an explicit version registry.",
+        "memory_agent_roles": ["global", "analysis-agent"],
+        "reinforcement_counts": [7, 2],
+        "success_counts": [5, 1]
+      }
+    },
+    {
+      "schema_version": 3,
+      "path": "schema-v3.sql",
+      "sha256": "e10384330087978948a45cc097c918b4decc2f6908cf3fbff11ab5c03eebe4c6",
+      "expected_after_migration": {
+        "experience_agent_role": "migration-specialist",
+        "lesson_agent_role": "migration-specialist",
+        "lesson_root_cause": "A previous migration path lacked an explicit version registry.",
+        "memory_agent_roles": ["global", "analysis-agent"],
+        "reinforcement_counts": [7, 2],
+        "success_counts": [5, 1]
+      }
+    }
+  ]
+}

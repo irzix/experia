@@ -40,13 +40,13 @@ async def test_shared_experience_multi_agent():
         researcher_context = await researcher.retrieve_context(query="Python script")
         assert "python main.py" not in researcher_context
 
-        # Now let's simulate a global Strategy memory being created (e.g., via ReflectionEngine)
-        # We manually insert a STRATEGY memory (agent_role="default", but type=MemoryType.STRATEGY)
+        # Now simulate a globally shared strategy (e.g., via ReflectionEngine).
+        # Only STRATEGY memories with the documented global role cross role boundaries.
         strategy_memory = Memory(
             id=uuid.uuid4(),
             content="Always write unit tests before executing main scripts.",
             type=MemoryType.STRATEGY,
-            agent_role="Supervisor",  # Supervisor generated it
+            agent_role="global",
             confidence=0.9,
             importance=1.0,
             source="Reflection",
