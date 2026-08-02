@@ -1,6 +1,6 @@
 # Experia API Reference
 
-Experia 0.8.0 is an async experience-learning layer with a local SQLite backend
+Experia 0.8.1 is an async experience-learning layer with a local SQLite backend
 and optional LLM and framework integrations. The canonical machine-readable
 public contract is [`api-snapshot.json`](api-snapshot.json); the generated
 constructor tables below expose its parameter names, kinds, types, required
@@ -221,7 +221,7 @@ field-level tables above list each transmitted field and its sanitized/pass-thro
 
 ### Public API stability
 
-The current major version is **0** (package version `0.8.0`).
+The current major version is **0** (package version `0.8.1`).
 Within this major version, every supported import path and compatible signature recorded in [`api-snapshot.json`](api-snapshot.json) is preserved. Removals or narrowed signatures ship only under a greater major version accompanied by a migration guide.
 
 ### SQLite schema support window

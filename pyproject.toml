@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "experia"
-version = "0.8.0"
+version = "0.8.1"
 description = "The open-source experience learning layer for AI agents."
 readme = "README.md"
 requires-python = ">=3.10"
